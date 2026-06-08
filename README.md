@@ -232,8 +232,8 @@ node --no-warnings --test .opencode/gomr/gomr.test.ts
 Expected result:
 
 ```text
-tests 33
-pass 33
+tests 34
+pass 34
 fail 0
 ```
 
@@ -250,6 +250,7 @@ node --no-warnings .opencode/gomr/gomr.ts plan . --goal "fix parser tests"
 node --no-warnings .opencode/gomr/gomr.ts snapshot . --goal "fix parser tests"
 node --no-warnings .opencode/gomr/gomr.ts graph build .
 node --no-warnings .opencode/gomr/gomr.ts sessions import .
+node --no-warnings .opencode/gomr/gomr.ts telemetry import .
 node --no-warnings .opencode/gomr/gomr.ts visual export .
 node --no-warnings .opencode/gomr/gomr.ts visual serve . --port 8787
 ```
@@ -271,6 +272,8 @@ The UI is a context path explainer rather than a telemetry dashboard. It shows:
 - Node Detail with trace metadata, digests, evidence path, relations, and anchor reuse
 
 Token counts are estimates over measurable text, not project size. Raw context uses captured tool output lengths plus local trace/ledger/path evidence that would otherwise accumulate. Rebuilt context uses the actual GOMR system/context-plan text injected by the plugin after path selection replaces that raw history.
+
+When `@ljw1004/opencode-trace` is installed, `telemetry import` reads `~/opencode-trace` and imports provider-reported prompt usage. Visual `rebuiltContextTokens` then prefers observed prompt tokens from telemetry, while `gomrContextTokens` keeps the smaller theoretical GOMR context-plan injection size for comparison.
 
 Build a context plan:
 

@@ -7,6 +7,7 @@ import {
   captureToolTrace,
   contextPlan,
   exportVisual,
+  importOpenCodeTelemetry,
   importOpenCodeSessionGoals,
   initMemory,
 } from "./runtime.ts"
@@ -54,6 +55,10 @@ try {
   } else if (command === "sessions" && subcommandOrProject === "import") {
     const project = requireProject(rest.shift())
     console.log(JSON.stringify(await importOpenCodeSessionGoals(project), null, 2))
+  } else if (command === "telemetry" && subcommandOrProject === "import") {
+    const project = requireProject(rest.shift())
+    const flags = parseFlags(rest)
+    console.log(JSON.stringify(await importOpenCodeTelemetry(project, { traceDir: flags["trace-dir"] }), null, 2))
   } else if (command === "visual" && subcommandOrProject === "export") {
     const project = requireProject(rest.shift())
     await exportVisual(project)
@@ -109,6 +114,7 @@ function usage() {
   gomr.ts snapshot <project> --goal "<goal>"
   gomr.ts graph build <project>
   gomr.ts sessions import <project>
+  gomr.ts telemetry import <project> [--trace-dir <dir>]
   gomr.ts visual export <project>
   gomr.ts visual serve <project> [--port 8787]`)
 }

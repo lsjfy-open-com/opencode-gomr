@@ -378,6 +378,40 @@ test("rebuilt context token estimate comes from the persisted context plan text 
   assert.equal(visualData.turns.at(-1).rebuiltContextTokens, Math.ceil(snapshot.context_plan_text_length / 3.5))
 })
 
+test("telemetry import maps observed prompt tokens onto visual rebuilt token counts", async () => {
+  const project = await createProject({
+    "README.md": "# Demo\n\nA parser project.",
+    "src/parser.ts": "export function parse(input: string) { return input.trim() }\n",
+  })
+  const traceDir = await fs.mkdtemp(path.join(os.tmpdir(), "gomr-trace-"))
+  tempProjects.push(traceDir)
+
+  await runtime.initMemory(project)
+  await runtime.contextPlan(project, "inspect parser context", { sessionId: "ses_TELEMETRY123" })
+  await rewriteSnapshotTimes(project, "turn-0001", "2026-06-08T10:00:00.000Z")
+  await fs.writeFile(
+    path.join(traceDir, "parser context.html"),
+    [
+      "<!DOCTYPE html><html></html>",
+      "<!--",
+      JSON.stringify({ _id: 1, _kind: "request", _purpose: "", _ts: "2026-06-08T10:00:01.000Z", messages: [{ role: "user", content: "inspect" }] }),
+      JSON.stringify({ _id: 1, _kind: "response", _purpose: "", _ts: "2026-06-08T09:59:59.700Z", "*usage": { "*prompt_tokens": 32123, "*total_tokens": 32200 } }),
+    ].join("\n"),
+    "utf8",
+  )
+
+  await runtime.importOpenCodeTelemetry(project, { traceDir })
+  await runtime.exportVisual(project)
+
+  const visualData = JSON.parse(await fs.readFile(path.join(project, ".orca-memory", "visual", "graph-data.json"), "utf8"))
+  const latestTurn = visualData.turns.at(-1)
+  assert.equal(latestTurn.observedPromptTokens, 32123)
+  assert.equal(latestTurn.rebuiltContextTokens, 32123)
+  assert.equal(latestTurn.rebuiltTokenSource, "telemetry")
+  assert.equal(latestTurn.gomrContextTokens > 0, true)
+  assert.notEqual(latestTurn.gomrContextTokens, latestTurn.observedPromptTokens)
+})
+
 test("visual export uses imported OpenCode session titles for generic turn goals", async () => {
   const project = await createProject({
     "README.md": "# Demo\n\nA parser project.",
@@ -750,6 +784,15 @@ async function exists(file: string) {
 
 async function run(script: string, ...args: string[]) {
   return exec(process.execPath, [path.join(import.meta.dirname, script), ...args], { cwd: import.meta.dirname })
+}
+
+async function rewriteSnapshotTimes(project: string, turnId: string, createdAt: string) {
+  for (const name of [`${turnId}.json`, "latest.json"]) {
+    const file = path.join(project, ".orca-memory", "paths", name)
+    const snapshot = JSON.parse(await fs.readFile(file, "utf8"))
+    snapshot.created_at = createdAt
+    await fs.writeFile(file, JSON.stringify(snapshot, null, 2), "utf8")
+  }
 }
 
 function pick(record: Record<string, unknown>, keys: string[]) {

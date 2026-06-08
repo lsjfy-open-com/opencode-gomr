@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto"
 import { execFile } from "node:child_process"
 import fs from "node:fs/promises"
+import os from "node:os"
 import path from "node:path"
 import { promisify } from "node:util"
 
@@ -11,6 +12,7 @@ const pathsRoot = path.join(memoryRoot, "paths")
 const graphRoot = path.join(memoryRoot, "graph")
 const visualRoot = path.join(memoryRoot, "visual")
 const sessionGoalsFile = path.join(cacheRoot, "session-goals.json")
+const telemetryFile = path.join(cacheRoot, "telemetry.json")
 const ignoredDirs = new Set([".git", "node_modules", ".orca-memory", "dist", "build", ".next", ".turbo"])
 const rootFiles = new Set(["README.md", "package.json", "tsconfig.json", "pyproject.toml", "go.mod", "AGENTS.md"])
 const sourceDirs = new Set(["src", "test", "tests", "packages", ".opencode"])
@@ -454,10 +456,44 @@ export async function importOpenCodeSessionGoals(project: string, options: { lis
   return cache
 }
 
+export async function importOpenCodeTelemetry(project: string, options: { traceDir?: string } = {}) {
+  await ensureMemory(project)
+  const snapshots = await readSnapshots(project)
+  const observations = await readOpenCodeTraceObservations(options.traceDir ?? path.join(os.homedir(), "opencode-trace"))
+  const turns: Record<string, any> = {}
+  const sortedSnapshots = snapshots.slice().sort((a, b) => String(a.created_at).localeCompare(String(b.created_at)))
+
+  for (const observation of observations) {
+    const snapshot = snapshotForObservation(sortedSnapshots, observation.timestamp)
+    if (!snapshot) continue
+    const previous = turns[snapshot.turn_id]
+    if (previous && previous.prompt_tokens >= observation.prompt_tokens) continue
+    turns[snapshot.turn_id] = {
+      prompt_tokens: observation.prompt_tokens,
+      total_tokens: observation.total_tokens,
+      completion_tokens: observation.completion_tokens,
+      model: observation.model,
+      observed_at: observation.timestamp,
+      response_id: observation.response_id,
+      trace_file: observation.trace_file,
+    }
+  }
+
+  const cache = {
+    version: 1,
+    generated_at: new Date().toISOString(),
+    source_dir: options.traceDir ?? path.join(os.homedir(), "opencode-trace"),
+    turns,
+  }
+  await fs.writeFile(path.join(project, telemetryFile), JSON.stringify(cache, null, 2), "utf8")
+  return cache
+}
+
 async function buildVisualData(project: string, graph: { nodes: any[]; edges: any[]; timeline: any[] }) {
   const snapshots = await readSnapshots(project)
   const traces = await readTraces(project)
   const sessionGoals = await readSessionGoals(project)
+  const telemetry = await readTelemetry(project)
   const traceById = new Map(traces.map((trace) => [trace.id, trace]))
   const latestSnapshot = snapshots.at(-1)
   const nodeReasons = new Map<string, string>()
@@ -527,7 +563,9 @@ async function buildVisualData(project: string, graph: { nodes: any[]; edges: an
       ]),
     ]
     const rawContextTokens = estimateRawContextTokens(traces, ledgerText, snapshots.slice(0, indexInTimeline + 1), snapshot)
-    const rebuiltContextTokens = estimateRebuiltContextTokens(snapshot)
+    const observed = telemetry.turns?.[snapshot.turn_id]
+    const gomrContextTokens = estimateRebuiltContextTokens(snapshot)
+    const rebuiltContextTokens = observed?.prompt_tokens ?? gomrContextTokens
     const newNodes = snapshot.diff_from_previous_turn?.added ?? pathIds
     return {
       id: snapshot.turn_id,
@@ -536,6 +574,10 @@ async function buildVisualData(project: string, graph: { nodes: any[]; edges: an
       goal: displayGoal.summary || displayGoal.title,
       rawContextTokens,
       rebuiltContextTokens,
+      gomrContextTokens,
+      observedPromptTokens: observed?.prompt_tokens,
+      observedTotalTokens: observed?.total_tokens,
+      rebuiltTokenSource: observed ? "telemetry" : "estimate",
       reusedAnchors,
       anchors: reusedAnchors,
       newNodes,
@@ -775,6 +817,81 @@ async function readSessionGoals(project: string) {
       })
       .filter(Boolean) as Array<[string, any]>,
   )
+}
+
+async function readTelemetry(project: string) {
+  return fs
+    .readFile(path.join(project, telemetryFile), "utf8")
+    .then((text) => JSON.parse(text))
+    .catch(() => ({ turns: {} }))
+}
+
+async function readOpenCodeTraceObservations(traceDir: string) {
+  const entries = await fs.readdir(traceDir).catch(() => [])
+  const observations: any[] = []
+  for (const entry of entries.filter((name) => name.endsWith(".html"))) {
+    const file = path.join(traceDir, entry)
+    const text = await fs.readFile(file, "utf8").catch(() => "")
+    const marker = text.lastIndexOf("<!--")
+    if (marker === -1) continue
+    for (const line of text.slice(marker + 4).split(/\r?\n/)) {
+      if (!line.trim().startsWith("{")) continue
+      const row = parseJsonLine(line)
+      if (!row || row._kind !== "response" || row._purpose === "[meta]") continue
+      const usage = normalizeUsage(row.usage ?? row["*usage"])
+      if (!usage?.prompt_tokens) continue
+      observations.push({
+        response_id: row._id,
+        timestamp: row._ts,
+        model: row.model,
+        trace_file: file,
+        ...usage,
+      })
+    }
+  }
+  return observations.sort((a, b) => String(a.timestamp).localeCompare(String(b.timestamp)))
+}
+
+function snapshotForObservation(snapshots: any[], timestamp: string) {
+  const observed = Date.parse(timestamp)
+  if (Number.isFinite(observed)) {
+    const nearest = snapshots
+      .map((snapshot) => ({ snapshot, delta: Math.abs(Date.parse(snapshot.created_at) - observed) }))
+      .filter((item) => Number.isFinite(item.delta) && item.delta <= 2000)
+      .sort((a, b) => a.delta - b.delta || String(a.snapshot.turn_id).localeCompare(String(b.snapshot.turn_id)))
+      .at(0)
+    if (nearest) return nearest.snapshot
+  }
+
+  let best: any
+  for (const snapshot of snapshots) {
+    if (String(snapshot.created_at).localeCompare(String(timestamp)) > 0) break
+    best = snapshot
+  }
+  return best
+}
+
+function normalizeUsage(usage: any) {
+  if (!usage || typeof usage !== "object") return undefined
+  const promptTokens = numberValue(usage.prompt_tokens ?? usage["*prompt_tokens"])
+  if (!promptTokens) return undefined
+  return {
+    prompt_tokens: promptTokens,
+    total_tokens: numberValue(usage.total_tokens ?? usage["*total_tokens"]),
+    completion_tokens: numberValue(usage.completion_tokens ?? usage["*completion_tokens"]),
+  }
+}
+
+function numberValue(value: unknown) {
+  return typeof value === "number" && Number.isFinite(value) ? value : undefined
+}
+
+function parseJsonLine(line: string) {
+  try {
+    return JSON.parse(line)
+  } catch {
+    return undefined
+  }
 }
 
 function displayGoalForSnapshot(snapshot: any, sessionGoals: Record<string, { title?: string }>) {
