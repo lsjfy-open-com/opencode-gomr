@@ -232,8 +232,8 @@ node --no-warnings --test .opencode/gomr/gomr.test.ts
 Expected result:
 
 ```text
-tests 31
-pass 31
+tests 33
+pass 33
 fail 0
 ```
 
@@ -269,6 +269,8 @@ The UI is a context path explainer rather than a telemetry dashboard. It shows:
 - Tree View that expands selected and excluded nodes with reasons and scores
 - Compare View showing raw accumulated history vs GOMR rebuilt context
 - Node Detail with trace metadata, digests, evidence path, relations, and anchor reuse
+
+Token counts are estimates over measurable text, not project size. Raw context uses captured tool output lengths plus local trace/ledger/path evidence that would otherwise accumulate. Rebuilt context uses the actual GOMR system/context-plan text injected by the plugin after path selection replaces that raw history.
 
 Build a context plan:
 

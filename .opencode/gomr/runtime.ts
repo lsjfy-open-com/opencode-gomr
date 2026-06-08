@@ -127,6 +127,7 @@ export async function initMemory(project: string) {
   await writeFileIfMissing(path.join(project, pathsRoot, "latest.json"), JSON.stringify(bootstrapSnapshot(), null, 2))
   await writeGraphSeed(project)
 
+  const projectFiles = await scanProject(project)
   await fs.writeFile(
     path.join(project, memoryRoot, "index.json"),
     JSON.stringify(
@@ -134,6 +135,7 @@ export async function initMemory(project: string) {
         version: 2,
         generated_at: new Date().toISOString(),
         project_root: project,
+        total_size: projectFiles.reduce((sum, file) => sum + (file.size ?? 0), 0),
         memory_nodes: seedMemoryNodes.map(({ id, path: nodePath, type, title, summary }) => ({
           id,
           path: `.orca-memory/${nodePath}`,
@@ -141,7 +143,7 @@ export async function initMemory(project: string) {
           title,
           summary,
         })),
-        files: await scanProject(project),
+        files: projectFiles,
       },
       null,
       2,
@@ -188,6 +190,12 @@ export async function contextPlan(project: string, goal: string, options: { sess
     recentTraces,
     tokenBudget: options.tokenBudget ?? 8000,
   })
+  const planWithSnapshot = { ...plan, snapshot }
+  snapshot.context_plan_text_length = measuredGomrSystemContextLength(planWithSnapshot)
+  await Promise.all([
+    fs.writeFile(path.join(project, pathsRoot, `${turnId}.json`), JSON.stringify(snapshot, null, 2), "utf8"),
+    fs.writeFile(path.join(project, pathsRoot, "latest.json"), JSON.stringify(snapshot, null, 2), "utf8"),
+  ])
   await fs.writeFile(
     path.join(project, cacheRoot, "execution-ledger.md"),
     updateCurrentGoal(await fs.readFile(path.join(project, cacheRoot, "execution-ledger.md"), "utf8"), goal, turnId),
@@ -195,6 +203,21 @@ export async function contextPlan(project: string, goal: string, options: { sess
   )
   await buildGraphData(project)
   return { ...plan, snapshot }
+}
+
+export function gomrSystemContextText(plan: any) {
+  return [
+    "## Goal-Oriented Memory Runtime",
+    "",
+    "Follow GOMR before broad workspace reads:",
+    "- Read `.orca-memory/cache/execution-ledger.md` for action state continuity.",
+    "- Build a context-plan and load only goal-relevant memory and workspace files.",
+    "- Prefer tool trace and execution ledger state over conversation recall.",
+    "- Never full-load `.orca-memory`; never directly overwrite memory files without a patch-style review.",
+    "",
+    "Current context-plan:",
+    JSON.stringify(plan, null, 2),
+  ].join("\n")
 }
 
 export async function captureToolTrace(
@@ -210,6 +233,7 @@ export async function captureToolTrace(
   const turnId = options.turnId ?? (await nextTurnId(project))
   const normalizedTarget = normalizePath(target)
   const outputSummary = summary || "Tool completed"
+  const outputText = options.output ?? outputSummary
   const trace = {
     id: `trace/${sessionId}/${turnId}/${slug(`${toolName}-${normalizedTarget}`)}`,
     session_id: sessionId,
@@ -220,6 +244,9 @@ export async function captureToolTrace(
     operation: options.operation ?? operationName(toolName, normalizedTarget),
     status,
     summary: outputSummary,
+    output_length: outputText.length,
+    summary_length: outputSummary.length,
+    output_token_estimate: estimateTokens(outputText),
     input_digest: await digestForTarget(project, normalizedTarget),
     output_digest: digest(options.output ?? outputSummary),
     evidence: evidenceForTarget(normalizedTarget),
@@ -266,6 +293,34 @@ export async function readCurrentGoal(project: string) {
   const match = /## Current Goal\s+([\s\S]*?)(?:\n## |\s*$)/.exec(ledger)
   const ledgerGoal = normalizeStoredGoal(match?.[1]?.trim().replace(/\s*\(turn-\d+\)\s*$/, ""))
   return ledgerGoal
+}
+
+export async function readCurrentPlan(project: string) {
+  await ensureMemory(project)
+  const latest = await readLatestSnapshot(project)
+  const goal = normalizeStoredGoal(latest.goal?.summary || latest.goal?.title) || "current OpenCode task"
+  return {
+    goal,
+    memory: [
+      ".orca-memory/profile.md",
+      ".orca-memory/architecture.md",
+      ".orca-memory/goals.md",
+      ".orca-memory/modules/gomr-runtime.md",
+      ".orca-memory/modules/context-router.md",
+      ".orca-memory/modules/tool-trace.md",
+      ".orca-memory/modules/visualization.md",
+    ],
+    runtime_state: [
+      ".orca-memory/cache/execution-ledger.md",
+      ".orca-memory/cache/context-state.json",
+      ".orca-memory/paths/latest.json",
+    ],
+    workspace: (latest.selected_path ?? [])
+      .filter((node) => node.type === "workspace")
+      .map((node) => node.source)
+      .filter(Boolean),
+    snapshot: latest,
+  }
 }
 
 export async function buildGraphData(project: string) {
@@ -408,6 +463,8 @@ async function buildVisualData(project: string, graph: { nodes: any[]; edges: an
   const nodeReasons = new Map<string, string>()
   const nodeRelations = new Map<string, Set<string>>()
 
+  const ledgerText = await fs.readFile(path.join(project, cacheRoot, "execution-ledger.md"), "utf8").catch(() => "")
+
   for (const snapshot of snapshots) {
     const displayGoal = displayGoalForSnapshot(snapshot, sessionGoals)
     for (const node of snapshot.selected_path ?? []) {
@@ -447,7 +504,6 @@ async function buildVisualData(project: string, graph: { nodes: any[]; edges: an
     }
   }
 
-  const ledgerText = await fs.readFile(path.join(project, cacheRoot, "execution-ledger.md"), "utf8").catch(() => "")
   nodesById.set("ledger/execution", {
     id: "ledger/execution",
     type: "ledger",
@@ -460,7 +516,7 @@ async function buildVisualData(project: string, graph: { nodes: any[]; edges: an
     metadata: { status: ledgerText.length > 0 ? "active" : "empty" },
   })
 
-  const turns = snapshots.map((snapshot, index) => {
+  const turns = snapshots.map((snapshot, indexInTimeline) => {
     const displayGoal = displayGoalForSnapshot(snapshot, sessionGoals)
     const pathIds = (snapshot.selected_path ?? []).map((node) => node.id)
     const excludedIds = (snapshot.excluded ?? []).map((node) => node.id)
@@ -470,7 +526,7 @@ async function buildVisualData(project: string, graph: { nodes: any[]; edges: an
         ...pathIds.filter((id) => id.startsWith("trace/") || id.startsWith("path/") || id.startsWith("ledger/")),
       ]),
     ]
-    const rawContextTokens = estimateRawContextTokens(index, traces.length, ledgerText)
+    const rawContextTokens = estimateRawContextTokens(traces, ledgerText, snapshots.slice(0, indexInTimeline + 1), snapshot)
     const rebuiltContextTokens = estimateRebuiltContextTokens(snapshot)
     const newNodes = snapshot.diff_from_previous_turn?.added ?? pathIds
     return {
@@ -591,14 +647,49 @@ function addRelation(relations: Map<string, Set<string>>, id: string, relation: 
   relations.get(id)?.add(relation)
 }
 
-function estimateRawContextTokens(index: number, traceCount: number, ledgerText: string) {
-  return 6000 + index * 4200 + traceCount * 700 + Math.ceil(ledgerText.length / 4)
+function estimateRawContextTokens(traces: any[], ledgerText: string, snapshots: any[], snapshot: any) {
+  const tracesThroughTurn = traces.filter((trace) => String(trace.turn_id).localeCompare(String(snapshot.turn_id)) <= 0)
+  const rawTextLength =
+    ledgerText.length +
+    tracesThroughTurn.reduce((sum, trace) => sum + traceContextTextLength(trace), 0) +
+    JSON.stringify(snapshots.map((item) => ({ turn_id: item.turn_id, goal: item.goal, selected_path: item.selected_path }))).length
+  return estimateTokensFromTextLength(rawTextLength)
 }
 
 function estimateRebuiltContextTokens(snapshot: any) {
-  const selectedText = (snapshot.selected_path ?? []).map((node) => `${node.title} ${node.summary} ${node.reason ?? ""}`).join("\n")
-  const backtrackText = (snapshot.backtrack_candidates ?? []).map((candidate) => `${candidate.summary} ${candidate.reason}`).join("\n")
-  return Math.max(1200, Math.ceil((selectedText.length + backtrackText.length) / 3) + (snapshot.selected_path?.length ?? 0) * 260)
+  if (snapshot.context_plan_text_length) {
+    return estimateTokensFromTextLength(snapshot.context_plan_text_length)
+  }
+  const selectedText = (snapshot.selected_path ?? []).map((node) => `${node.title}\n${node.summary}\n${node.reason ?? ""}`).join("\n\n")
+  const backtrackText = (snapshot.backtrack_candidates ?? []).map((candidate) => `${candidate.summary}\n${candidate.reason}`).join("\n\n")
+  return estimateTokens(`${selectedText}\n\n${backtrackText}`)
+}
+
+function estimateTokens(text: string) {
+  return estimateTokensFromTextLength(text.length)
+}
+
+function estimateTokensFromTextLength(length: number) {
+  return Math.max(1, Math.ceil(length / 3.5))
+}
+
+function traceContextTextLength(trace: any) {
+  if (typeof trace.output_length === "number") return trace.output_length
+  if (typeof trace.context_measurement?.output_length === "number") return trace.context_measurement.output_length
+  const summaryLength = typeof trace.summary === "string" ? trace.summary.length : 0
+  return Math.max(summaryLength, JSON.stringify({ tool: trace.tool, target: trace.target, status: trace.status, summary: trace.summary }).length)
+}
+
+function measuredGomrSystemContextLength(plan: any) {
+  let previous = 0
+  for (let attempt = 0; attempt < 5; attempt++) {
+    if (plan.snapshot) plan.snapshot.context_plan_text_length = previous
+    const next = gomrSystemContextText(plan).length
+    if (next === previous) return next
+    previous = next
+  }
+  if (plan.snapshot) plan.snapshot.context_plan_text_length = previous
+  return gomrSystemContextText(plan).length
 }
 
 function relationNotesForTurn(snapshot: any) {
@@ -797,12 +888,14 @@ async function scanDir(root: string, dir: string) {
       }
       if (!entry.isFile()) return []
       if (entry.name.endsWith(".map") || entry.name.endsWith(".lock")) return []
+      const stat = await fs.stat(absolute)
       return [
         {
           path: relative,
           kind: fileKind(relative),
           summary: await fileSummary(absolute, relative),
-          updated_at: new Date((await fs.stat(absolute)).mtimeMs).toISOString(),
+          size: stat.size,
+          updated_at: new Date(stat.mtimeMs).toISOString(),
         },
       ]
     }),
@@ -1237,8 +1330,11 @@ function normalizeScore(score: number) {
 }
 
 function titleFromGoal(goal: string) {
-  const clean = goal.trim() || "Current OpenCode task"
-  return clean.length > 72 ? `${clean.slice(0, 69)}...` : clean
+  const clean = goal.trim()
+  if (!clean || clean === "current OpenCode task" || clean === "Current OpenCode task") return "Current OpenCode task"
+  const firstSentence = clean.split(/[.?!。？！\n]\s*/)[0].trim()
+  const best = firstSentence || clean
+  return best.length > 72 ? `${best.slice(0, 69)}...` : best
 }
 
 function fileKind(file: string) {
@@ -1352,8 +1448,6 @@ function visualHtml(data: any) {
     .kv:last-child { border-bottom:none; }
     .kv .k { color:var(--muted); }
     .chip { display:inline-flex; margin:4px 4px 0 0; padding:4px 8px; border:1px solid rgba(124,199,255,.25); border-radius:999px; color:#d8ecff; background:rgba(124,199,255,.09); font-size:12px; }
-    .diff { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; margin-top:14px; }
-    .diff div { border:1px solid var(--line); border-radius:12px; padding:10px; background:var(--card); min-height:70px; }
     @media (max-width:1100px) { .layout { grid-template-columns:1fr; } .summary-grid, .compare { grid-template-columns:1fr; } .detail { max-height:none; } }
   </style>
 </head>
@@ -1383,6 +1477,9 @@ function visualHtml(data: any) {
           <button class="tab active" data-view="graph">图路径：全局节点中点亮本轮路径</button>
           <button class="tab" data-view="tree">树视图：路径节点展开</button>
           <button class="tab" data-view="compare">对比：不重构 vs 重构后 Context</button>
+          <label style="margin-left:auto;display:flex;align-items:center;gap:6px;color:var(--muted);font-size:12px;padding-right:12px;white-space:nowrap">
+            <input type="checkbox" id="showAllNodes"> 显示全部节点
+          </label>
         </div>
         <div id="viewContainer" class="canvas"></div>
       </section>
@@ -1396,10 +1493,11 @@ function visualHtml(data: any) {
     const embeddedData = ${embedded};
     let graph = embeddedData;
     let latestTurn = graph.turns && graph.turns.length ? graph.turns[graph.turns.length - 1].id : "";
-    let activeTurn = latestTurn;
+     let activeTurn = latestTurn;
     let activeNode = "";
     let currentView = "graph";
     let timer = null;
+    let showAllNodes = false;
 
     function byId(id) { return (graph.nodes || []).find(function(node) { return node.id === id; }); }
     function turn() { return (graph.turns || []).find(function(item) { return item.id === activeTurn; }) || (graph.turns || [])[0]; }
@@ -1438,34 +1536,51 @@ function visualHtml(data: any) {
     }
 
     function renderGraph() {
-      const t = turn();
+      var t = turn();
       if (!t) return;
-      const pathSet = new Set(t.path || []);
-      const excludedSet = new Set(t.excluded || []);
-      const anchorSet = new Set(t.reusedAnchors || t.anchors || []);
-      const edgeSvg = '<svg class="edges" viewBox="0 0 1810 760"><defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#52628a"></path></marker><marker id="arrowPath" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#4db5ff"></path></marker></defs>' +
+      var pathSet = new Set(t.path || []);
+      var excludedSet = new Set(t.excluded || []);
+      var anchorSet = new Set(t.reusedAnchors || t.anchors || []);
+
+      var visibleSet = new Set();
+      if (!showAllNodes) {
+        t.path.forEach(function(id) { visibleSet.add(id); });
+        t.excluded.forEach(function(id) { visibleSet.add(id); });
+        (t.reusedAnchors || []).forEach(function(id) { visibleSet.add(id); });
+        (graph.nodes || []).forEach(function(n) {
+          if (n.type === "memory" || n.type === "decision" || n.type === "ledger" || n.type === "goal") visibleSet.add(n.id);
+        });
+        (graph.edges || []).forEach(function(edge) {
+          if (pathSet.has(edge.from) && !visibleSet.has(edge.to)) visibleSet.add(edge.to);
+          if (pathSet.has(edge.to) && !visibleSet.has(edge.from)) visibleSet.add(edge.from);
+        });
+      }
+
+      var edgeSvg = '<svg class="edges" viewBox="0 0 1810 760"><defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#52628a"></path></marker><marker id="arrowPath" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#4db5ff"></path></marker></defs>' +
         (graph.edges || []).map(function(edge) {
-          const a = byId(edge.from), b = byId(edge.to);
+          var a = byId(edge.from), b = byId(edge.to);
           if (!a || !b) return "";
-          const active = pathSet.has(edge.from) && pathSet.has(edge.to);
-          const color = active ? "#4db5ff" : edge.type === "excluded_by" ? "#4a5168" : "#52628a";
-          const width = active ? 2.5 : 1.2;
-          const opacity = active ? .95 : .28;
-          const marker = active ? "arrowPath" : "arrow";
+          if (!showAllNodes && (!visibleSet.has(edge.from) || !visibleSet.has(edge.to))) return "";
+          var active = pathSet.has(edge.from) && pathSet.has(edge.to);
+          var color = active ? "#4db5ff" : edge.type === "excluded_by" ? "#4a5168" : "#52628a";
+          var width = active ? 2.5 : 1.2;
+          var opacity = active ? .95 : .28;
+          var marker = active ? "arrowPath" : "arrow";
           return '<line x1="' + (a.x + 95) + '" y1="' + (a.y + 44) + '" x2="' + (b.x + 95) + '" y2="' + (b.y + 44) + '" stroke="' + color + '" stroke-width="' + width + '" opacity="' + opacity + '" marker-end="url(#' + marker + ')"><title>' + escapeHtml(edge.summary || edge.type) + '</title></line>';
         }).join("") + '</svg>';
-      const nodes = (graph.nodes || []).map(function(n) {
-        const active = pathSet.has(n.id);
-        const excluded = excludedSet.has(n.id);
-        const anchor = anchorSet.has(n.id);
-        const dim = !active && !excluded;
-        const cls = 'node ' + (active ? 'path ' : '') + (excluded ? 'excluded ' : '') + (anchor ? 'anchor ' : '') + (dim ? 'dimmed ' : '') + (activeNode === n.id ? 'selected' : '');
+      var nodes = (graph.nodes || []).map(function(n) {
+        if (!showAllNodes && !visibleSet.has(n.id)) return "";
+        var active = pathSet.has(n.id);
+        var excluded = excludedSet.has(n.id);
+        var anchor = anchorSet.has(n.id);
+        var dim = !active && !excluded;
+        var cls = 'node ' + (active ? 'path ' : '') + (excluded ? 'excluded ' : '') + (anchor ? 'anchor ' : '') + (dim ? 'dimmed ' : '') + (activeNode === n.id ? 'selected' : '');
         return '<div class="' + cls + '" style="left:' + (n.x || 0) + 'px;top:' + (n.y || 0) + 'px" onclick="selectNode(\\'' + escAttr(n.id) + '\\')">' +
           '<div class="kind">' + escapeHtml(n.type) + (anchor ? ' · reused anchor' : '') + '</div>' +
           '<div class="title">' + escapeHtml(n.title) + '</div><div class="summary">' + escapeHtml(n.summary) + '</div>' +
           '<div class="score"><span style="width:' + Math.round((n.score || 0) * 100) + '%"></span></div></div>';
       }).join("");
-      document.getElementById("viewContainer").innerHTML = '<h2 style="position:absolute;left:-9999px">Path Graph</h2><div class="graph-stage">' + edgeSvg + nodes + '</div>' + renderDiff(t);
+      document.getElementById("viewContainer").innerHTML = '<h2 style="position:absolute;left:-9999px">Path Graph</h2><div class="graph-stage">' + edgeSvg + nodes + '</div>';
     }
 
     function renderTree() {
@@ -1482,7 +1597,7 @@ function visualHtml(data: any) {
         if (!n) return "";
         return '<div class="tree-row excluded" onclick="selectNode(\\'' + escAttr(id) + '\\')"><div><div class="tree-name">排除 · ' + escapeHtml(n.title) + '</div><div class="tree-desc">' + escapeHtml(n.type) + '</div></div><div><div>' + escapeHtml(n.summary) + '</div><div class="tree-reason">排除原因：' + escapeHtml(n.reason || '') + '</div></div><div><span class="badge">' + Math.round((n.score || 0) * 100) + '%</span></div></div>';
       }).join("");
-      document.getElementById("viewContainer").innerHTML = '<div class="tree"><h3>本轮重构出的前置路径</h3>' + rows + '<h3 style="margin-top:18px;color:var(--muted)">本轮明确排除的历史节点</h3>' + excludedRows + '</div>' + renderDiff(t);
+      document.getElementById("viewContainer").innerHTML = '<div class="tree"><h3>本轮重构出的前置路径</h3>' + rows + '<h3 style="margin-top:18px;color:var(--muted)">本轮明确排除的历史节点</h3>' + excludedRows + '</div>';
     }
 
     function renderCompare() {
@@ -1496,11 +1611,7 @@ function visualHtml(data: any) {
         if (!n) return "";
         return '<div class="block used"><strong>' + escapeHtml(n.title) + '</strong><div class="small">' + escapeHtml(n.summary) + '</div><div class="small">关系：' + escapeHtml((n.relations || []).join('；') || n.reason || '') + '</div></div>';
       }).join("");
-      document.getElementById("viewContainer").innerHTML = '<div class="compare"><div class="stream"><h3>不重构：持续全量增加的历史文本流</h3><p class="small">历史本地保留，但不直接全量注入模型。</p>' + rawBlocks + '</div><div class="reconstructed"><h3>GOMR 重构后：点亮目标相关路径</h3><p class="small">模型上下文由当前目标、memory、trace、ledger 和 path snapshot 重构。</p>' + rebuilt + '</div></div>' + renderDiff(t);
-    }
-
-    function renderDiff(t) {
-      return '<div class="diff"><div><strong>Added nodes</strong><p class="meta">' + escapeHtml((t.newNodes || []).join('\\n')) + '</p></div><div><strong>Removed nodes</strong><p class="meta">' + escapeHtml((t.removedNodes || []).join('\\n')) + '</p></div><div><strong>Kept nodes</strong><p class="meta">' + escapeHtml((t.keptNodes || []).join('\\n')) + '</p></div></div>';
+      document.getElementById("viewContainer").innerHTML = '<div class="compare"><div class="stream"><h3>不重构：持续全量增加的历史文本流</h3><p class="small">历史本地保留，但不直接全量注入模型。</p>' + rawBlocks + '</div><div class="reconstructed"><h3>GOMR 重构后：点亮目标相关路径</h3><p class="small">模型上下文由当前目标、memory、trace、ledger 和 path snapshot 重构。</p>' + rebuilt + '</div></div>';
     }
 
     function renderDetail() {
@@ -1566,6 +1677,10 @@ function visualHtml(data: any) {
         if (turns.length) selectTurn(turns[(index + 1) % turns.length].id);
       }, 1800);
     };
+    document.getElementById("showAllNodes").addEventListener("change", function() {
+      showAllNodes = this.checked;
+      render();
+    });
     function escapeHtml(value) {
       return String(value).replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
     }

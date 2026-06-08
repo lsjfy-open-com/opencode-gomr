@@ -155,6 +155,8 @@ test("capture-tool-trace persists v0.2 session traces with digests and ledger ta
   assert.equal(trace.summary, "Parser core")
   assert.match(trace.input_digest, /^sha256:/)
   assert.match(trace.output_digest, /^sha256:/)
+  assert.equal(typeof trace.output_length, "number")
+  assert.equal(typeof trace.output_token_estimate, "number")
   assert.equal(trace.context_relevance.reason.includes("current goal"), true)
 
   const ledger = await fs.readFile(path.join(project, ".orca-memory", "cache", "execution-ledger.md"), "utf8")
@@ -330,10 +332,50 @@ test("visual export builds expanded turn, node, edge, and context block data", a
     assert.equal(turn.path.length > 0, true)
     assert.equal(typeof turn.rawContextTokens, "number")
     assert.equal(typeof turn.rebuiltContextTokens, "number")
-    assert.equal(turn.rawContextTokens >= turn.rebuiltContextTokens, true)
+    assert.equal(turn.rawContextTokens > 0, true)
+    assert.equal(turn.rebuiltContextTokens > 0, true)
     assert.equal(turn.contextBlocks.some((block) => block.usedInRebuiltContext), true)
     assert.equal(turn.contextBlocks.some((block) => !block.usedInRebuiltContext), true)
   }
+})
+
+test("raw context token estimate scales with captured tool output, not indexed file size alone", async () => {
+  const project = await createProject({
+    "README.md": "# Demo\n\nSmall project.",
+    "src/parser.ts": "export function parse(input: string) { return input.trim() }\n",
+  })
+
+  await runtime.initMemory(project)
+  await runtime.captureToolTrace(project, "read", "src/parser.ts", "success", "small read", { output: "small output" })
+  await runtime.contextPlan(project, "inspect parser context")
+  await runtime.exportVisual(project)
+  const smallRaw = JSON.parse(await fs.readFile(path.join(project, ".orca-memory", "visual", "graph-data.json"), "utf8")).turns.at(-1).rawContextTokens
+
+  await fs.writeFile(path.join(project, "README.md"), `# Demo\n\n${"large context ".repeat(5000)}\n`, "utf8")
+  await runtime.initMemory(project)
+  await runtime.captureToolTrace(project, "read", "src/parser.ts", "success", "large read", { output: "large output ".repeat(5000) })
+  await runtime.contextPlan(project, "inspect parser context")
+  await runtime.exportVisual(project)
+  const largeRaw = JSON.parse(await fs.readFile(path.join(project, ".orca-memory", "visual", "graph-data.json"), "utf8")).turns.at(-1).rawContextTokens
+
+  assert.equal(largeRaw > smallRaw + 10000, true)
+})
+
+test("rebuilt context token estimate comes from the persisted context plan text length", async () => {
+  const project = await createProject({
+    "README.md": "# Demo\n\nA parser project.",
+    "src/parser.ts": "export function parse(input: string) { return input.trim() }\n",
+  })
+
+  await runtime.initMemory(project)
+  await runtime.contextPlan(project, "inspect parser context")
+  await runtime.exportVisual(project)
+
+  const snapshot = JSON.parse(await fs.readFile(path.join(project, ".orca-memory", "paths", "latest.json"), "utf8"))
+  const visualData = JSON.parse(await fs.readFile(path.join(project, ".orca-memory", "visual", "graph-data.json"), "utf8"))
+
+  assert.equal(typeof snapshot.context_plan_text_length, "number")
+  assert.equal(visualData.turns.at(-1).rebuiltContextTokens, Math.ceil(snapshot.context_plan_text_length / 3.5))
 })
 
 test("visual export uses imported OpenCode session titles for generic turn goals", async () => {
@@ -504,7 +546,7 @@ test("successive snapshots report added removed and kept node ids", async () => 
   assert.notEqual(first.turn_id, second.turn_id)
 })
 
-test("visual export includes polling and renders diff/detail regions", async () => {
+test("visual export includes polling and renders detail regions", async () => {
   const project = await createProject({
     "README.md": "# Demo\n",
     "src/parser.ts": "export const parser = true\n",
@@ -516,9 +558,7 @@ test("visual export includes polling and renders diff/detail regions", async () 
 
   const visual = await fs.readFile(path.join(project, ".orca-memory", "visual", "index.html"), "utf8")
   assert.equal(visual.includes("setInterval(loadGraph, 1500)"), true)
-  assert.equal(visual.includes("Added nodes"), true)
-  assert.equal(visual.includes("Removed nodes"), true)
-  assert.equal(visual.includes("Kept nodes"), true)
+  assert.equal(visual.includes("Node Detail"), true)
   assert.equal(visual.includes("../paths/latest.json"), true)
 })
 

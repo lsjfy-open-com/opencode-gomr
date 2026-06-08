@@ -1,4 +1,14 @@
-import { buildContextState, captureToolTrace, compactingContext, contextPlan, exportVisual, initMemory, readCurrentGoal } from "../gomr/runtime.ts"
+import {
+  buildContextState,
+  captureToolTrace,
+  compactingContext,
+  contextPlan,
+  exportVisual,
+  gomrSystemContextText,
+  initMemory,
+  readCurrentGoal,
+  readCurrentPlan,
+} from "../gomr/runtime.ts"
 
 export const GomrPlugin = async ({ directory, worktree }) => {
   const project = directory || worktree
@@ -6,22 +16,13 @@ export const GomrPlugin = async ({ directory, worktree }) => {
   return {
     "experimental.chat.system.transform": async (input, output) => {
       await initMemory(project)
-      const goal = goalFromInput(input) || (await readCurrentGoal(project)) || "current OpenCode task"
+      const userGoal = goalFromInput(input)
+      const goal = userGoal || (await readCurrentGoal(project)) || "current OpenCode task"
       if (input?.sessionID) sessionGoals.set(input.sessionID, goal)
-      output.system.push(
-        [
-          "## Goal-Oriented Memory Runtime",
-          "",
-          "Follow GOMR before broad workspace reads:",
-          "- Read `.orca-memory/cache/execution-ledger.md` for action state continuity.",
-          "- Build a context-plan and load only goal-relevant memory and workspace files.",
-          "- Prefer tool trace and execution ledger state over conversation recall.",
-          "- Never full-load `.orca-memory`; never directly overwrite memory files without a patch-style review.",
-          "",
-          "Current context-plan:",
-          JSON.stringify(await contextPlan(project, goal, { sessionId: input?.sessionID }), null, 2),
-        ].join("\n"),
-      )
+      const plan = userGoal
+        ? await contextPlan(project, goal, { sessionId: input?.sessionID })
+        : await readCurrentPlan(project)
+      output.system.push(gomrSystemContextText(plan))
     },
     "tool.execute.after": async (input, output) => {
       const goal = sessionGoals.get(input.sessionID) || (await readCurrentGoal(project)) || goalFromInput(input) || "current OpenCode task"
@@ -85,5 +86,7 @@ function contentText(value) {
 function cleanGoal(value) {
   const clean = value?.replace(/\s+/g, " ").trim()
   if (!clean || clean === "current OpenCode task" || clean === "Current OpenCode task") return undefined
-  return clean.length > 240 ? `${clean.slice(0, 237)}...` : clean
+  const firstSentence = clean.split(/[.?!。？！\n]\s*/)[0].trim()
+  const best = firstSentence || clean
+  return best.length > 240 ? `${best.slice(0, 237)}...` : best
 }
