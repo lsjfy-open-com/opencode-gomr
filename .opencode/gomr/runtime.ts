@@ -252,6 +252,18 @@ export async function buildContextState(project: string) {
   return state
 }
 
+export async function readCurrentGoal(project: string) {
+  await ensureMemory(project)
+  const latest = await readLatestSnapshot(project)
+  const latestGoal = normalizeStoredGoal(latest.goal?.summary || latest.goal?.title)
+  if (latestGoal) return latestGoal
+
+  const ledger = await fs.readFile(path.join(project, cacheRoot, "execution-ledger.md"), "utf8").catch(() => "")
+  const match = /## Current Goal\s+([\s\S]*?)(?:\n## |\s*$)/.exec(ledger)
+  const ledgerGoal = normalizeStoredGoal(match?.[1]?.trim().replace(/\s*\(turn-\d+\)\s*$/, ""))
+  return ledgerGoal
+}
+
 export async function buildGraphData(project: string) {
   await ensureMemory(project)
   const nodes = new Map<string, any>()
@@ -624,6 +636,12 @@ function blockSourceType(type: string) {
   if (type === "decision") return "decision"
   if (type === "path") return "path_snapshot"
   return "raw_tool_output"
+}
+
+function normalizeStoredGoal(goal?: string) {
+  const clean = goal?.trim()
+  if (!clean || clean === "current OpenCode task" || clean === "Current OpenCode task") return undefined
+  return clean
 }
 
 function assignVisualPositions(nodes: any[]) {

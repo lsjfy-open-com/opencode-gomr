@@ -232,8 +232,8 @@ node --no-warnings --test .opencode/gomr/gomr.test.ts
 Expected result:
 
 ```text
-tests 27
-pass 27
+tests 29
+pass 29
 fail 0
 ```
 
@@ -263,6 +263,7 @@ node --no-warnings .opencode/gomr/gomr.ts visual serve . --port 8787
 The UI is a context path explainer rather than a telemetry dashboard. It shows:
 
 - Turn Timeline with raw vs rebuilt context size, reused anchors, and new nodes
+- Real turn goals from the latest user message captured by the OpenCode hook
 - Graph View that highlights the current turn path inside the global history graph
 - Tree View that expands selected and excluded nodes with reasons and scores
 - Compare View showing raw accumulated history vs GOMR rebuilt context

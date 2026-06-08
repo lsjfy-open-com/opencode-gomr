@@ -509,6 +509,58 @@ test("plugin injects a context plan into system context", async () => {
   assert.equal(output.system.some((entry) => entry.includes("context-plan")), true)
 })
 
+test("plugin uses the latest user message as the context plan goal", async () => {
+  const project = await createProject({
+    "README.md": "# Demo\n",
+    "src/parser.ts": "export const parser = true\n",
+  })
+  const hooks = await pluginHooks(project)
+  const output = { system: [] as string[] }
+
+  await hooks["experimental.chat.system.transform"](
+    {
+      sessionID: "session-1",
+      model: {},
+      messages: [
+        { role: "user", content: "Improve PageIndex retrieval summaries" },
+        { role: "assistant", content: "I'll inspect the repo." },
+        { role: "user", content: "Add real goal titles to the GOMR visualization" },
+      ],
+    },
+    output,
+  )
+
+  const latest = JSON.parse(await fs.readFile(path.join(project, ".orca-memory", "paths", "latest.json"), "utf8"))
+  assert.equal(latest.goal.summary, "Add real goal titles to the GOMR visualization")
+  assert.equal(output.system.some((entry) => entry.includes("Add real goal titles to the GOMR visualization")), true)
+})
+
+test("plugin preserves the recorded goal when refreshing snapshots after tools", async () => {
+  const project = await createProject({
+    "README.md": "# Demo\n",
+    "src/parser.ts": "export const parser = true\n",
+  })
+  const hooks = await pluginHooks(project)
+
+  await hooks["experimental.chat.system.transform"](
+    {
+      sessionID: "session-1",
+      model: {},
+      messages: [{ role: "user", content: [{ type: "text", text: "Render real GOMR turn goals" }] }],
+    },
+    { system: [] as string[] },
+  )
+  await hooks["tool.execute.after"](
+    { tool: "read", sessionID: "session-1", callID: "call-1", args: { filePath: "src/parser.ts" } },
+    { title: "Read src/parser.ts", output: "Parser core", metadata: {} },
+  )
+
+  const latest = JSON.parse(await fs.readFile(path.join(project, ".orca-memory", "paths", "latest.json"), "utf8"))
+  const visualData = JSON.parse(await fs.readFile(path.join(project, ".orca-memory", "visual", "graph-data.json"), "utf8"))
+  assert.equal(latest.goal.summary, "Render real GOMR turn goals")
+  assert.equal(visualData.turns.at(-1).goal, "Render real GOMR turn goals")
+})
+
 test("plugin records tool traces after tool execution", async () => {
   const project = await createProject({
     "README.md": "# Demo\n",
