@@ -1,0 +1,7 @@
+.orca-memory/cache/
+.orca-memory/archive/
+node_modules/
+*.log
+*.tmp
+dist/
+coverage/
