@@ -36,6 +36,7 @@ Goal
 - Tool trace capture into JSONL
 - Execution ledger updates for files read, commands run, files modified, failed attempts, and open questions
 - Context-state snapshot generation
+- Expanded visual export with turn timeline, graph view, tree view, compare view, node detail, auto-play, and latest-turn polling
 - OpenCode plugin hooks for:
   - system context injection
   - tool trace capture
@@ -231,8 +232,8 @@ node --no-warnings --test .opencode/gomr/gomr.test.ts
 Expected result:
 
 ```text
-tests 23
-pass 23
+tests 27
+pass 27
 fail 0
 ```
 
@@ -251,6 +252,21 @@ node --no-warnings .opencode/gomr/gomr.ts graph build .
 node --no-warnings .opencode/gomr/gomr.ts visual export .
 node --no-warnings .opencode/gomr/gomr.ts visual serve . --port 8787
 ```
+
+`visual export` writes a single-file static UI plus data:
+
+```text
+.orca-memory/visual/index.html
+.orca-memory/visual/graph-data.json
+```
+
+The UI is a context path explainer rather than a telemetry dashboard. It shows:
+
+- Turn Timeline with raw vs rebuilt context size, reused anchors, and new nodes
+- Graph View that highlights the current turn path inside the global history graph
+- Tree View that expands selected and excluded nodes with reasons and scores
+- Compare View showing raw accumulated history vs GOMR rebuilt context
+- Node Detail with trace metadata, digests, evidence path, relations, and anchor reuse
 
 Build a context plan:
 

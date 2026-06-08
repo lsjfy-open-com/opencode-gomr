@@ -301,7 +301,108 @@ test("graph build and visual export create readable timeline artifacts", async (
   assert.equal(visual.includes("Node Detail"), true)
 
   const visualGraph = JSON.parse(await fs.readFile(path.join(project, ".orca-memory", "visual", "graph-data.json"), "utf8"))
-  assert.equal(visualGraph.nodes.length, graph.nodes.length)
+  assert.equal(visualGraph.nodes.length >= graph.nodes.length, true)
+  assert.equal(visualGraph.nodes.some((node) => node.id === "ledger/execution"), true)
+})
+
+test("visual export builds expanded turn, node, edge, and context block data", async () => {
+  const project = await createProject({
+    "README.md": "# Demo\n\nA parser project.",
+    "src/parser.ts": "export function parse(input: string) { return input.trim() }\n",
+    "src/render.ts": "export function render(input: string) { return input }\n",
+  })
+
+  await run("memory-index.ts", "init", project)
+  await run("capture-tool-trace.ts", project, "read", "src/parser.ts", "success", "Parser core")
+  await run("context-plan.ts", project, "fix parser tests")
+  await run("context-plan.ts", project, "fix render tests")
+  await runtime.exportVisual(project)
+
+  const visualData = JSON.parse(await fs.readFile(path.join(project, ".orca-memory", "visual", "graph-data.json"), "utf8"))
+  assert.equal(Array.isArray(visualData.turns), true)
+  assert.equal(Array.isArray(visualData.nodes), true)
+  assert.equal(Array.isArray(visualData.edges), true)
+  assert.equal(visualData.turns.length >= 2, true)
+
+  for (const turn of visualData.turns) {
+    assert.equal(typeof turn.goal, "string")
+    assert.equal(turn.goal.length > 0, true)
+    assert.equal(turn.path.length > 0, true)
+    assert.equal(typeof turn.rawContextTokens, "number")
+    assert.equal(typeof turn.rebuiltContextTokens, "number")
+    assert.equal(turn.rawContextTokens >= turn.rebuiltContextTokens, true)
+    assert.equal(turn.contextBlocks.some((block) => block.usedInRebuiltContext), true)
+    assert.equal(turn.contextBlocks.some((block) => !block.usedInRebuiltContext), true)
+  }
+})
+
+test("visual data links selected and excluded nodes to readable node records", async () => {
+  const project = await createProject({
+    "README.md": "# Demo\n\nA parser project.",
+    "src/parser.ts": "export function parse(input: string) { return input.trim() }\n",
+    "src/render.ts": "export function render(input: string) { return input }\n",
+  })
+
+  await run("memory-index.ts", "init", project)
+  await run("capture-tool-trace.ts", project, "read", "src/parser.ts", "success", "Parser core")
+  await run("context-plan.ts", project, "fix parser tests")
+  await runtime.exportVisual(project)
+
+  const visualData = JSON.parse(await fs.readFile(path.join(project, ".orca-memory", "visual", "graph-data.json"), "utf8"))
+  const nodeMap = new Map(visualData.nodes.map((node) => [node.id, node]))
+
+  for (const turn of visualData.turns) {
+    for (const id of [...turn.path, ...turn.excluded]) {
+      const node = nodeMap.get(id)
+      assert.notEqual(node, undefined)
+      assert.equal(node.title.length > 0, true)
+      assert.equal(node.summary.length > 0, true)
+      assert.equal((node.reason || "fallback").length > 0, true)
+    }
+  }
+})
+
+test("visual trace nodes include tool metadata, digests, evidence, and reuse hints", async () => {
+  const project = await createProject({
+    "README.md": "# Demo\n",
+    "src/parser.ts": "export const parser = true\n",
+  })
+
+  await run("memory-index.ts", "init", project)
+  await run("capture-tool-trace.ts", project, "read", "src/parser.ts", "success", "Parser core")
+  await run("context-plan.ts", project, "fix parser tests")
+  await runtime.exportVisual(project)
+
+  const visualData = JSON.parse(await fs.readFile(path.join(project, ".orca-memory", "visual", "graph-data.json"), "utf8"))
+  const traceNode = visualData.nodes.find((node) => node.type === "trace" && node.source.includes("session-default.jsonl"))
+  assert.notEqual(traceNode, undefined)
+  assert.equal(traceNode.metadata.tool, "read")
+  assert.equal(traceNode.metadata.target, "src/parser.ts")
+  assert.match(traceNode.metadata.inputDigest, /^sha256:/)
+  assert.match(traceNode.metadata.outputDigest, /^sha256:/)
+  assert.equal(traceNode.metadata.evidencePath, "src/parser.ts")
+  assert.equal(traceNode.relations.some((relation) => relation.includes("reuse")), true)
+})
+
+test("visual shell uses the expanded dark three-view demo interface", async () => {
+  const project = await createProject({
+    "README.md": "# Demo\n",
+    "src/parser.ts": "export const parser = true\n",
+  })
+
+  await run("memory-index.ts", "init", project)
+  await run("context-plan.ts", project, "fix parser tests")
+  await runtime.exportVisual(project)
+
+  const visual = await fs.readFile(path.join(project, ".orca-memory", "visual", "index.html"), "utf8")
+  assert.equal(visual.includes("GOMR Context Reconstruction Visualization"), true)
+  assert.equal(visual.includes("图路径：全局节点中点亮本轮路径"), true)
+  assert.equal(visual.includes("树视图：路径节点展开"), true)
+  assert.equal(visual.includes("对比：不重构 vs 重构后 Context"), true)
+  assert.equal(visual.includes("自动播放"), true)
+  assert.equal(visual.includes("最新轮"), true)
+  assert.equal(visual.includes("fetch(\"graph-data.json"), true)
+  assert.equal(visual.includes("../paths/latest.json"), true)
 })
 
 test("graph data contains every selected path node and selected_for_goal edge", async () => {
