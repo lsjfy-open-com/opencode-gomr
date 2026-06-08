@@ -1,7 +1,15 @@
 import http from "node:http"
 import path from "node:path"
 
-import { buildContextState, buildGraphData, captureToolTrace, contextPlan, exportVisual, initMemory } from "./runtime.ts"
+import {
+  buildContextState,
+  buildGraphData,
+  captureToolTrace,
+  contextPlan,
+  exportVisual,
+  importOpenCodeSessionGoals,
+  initMemory,
+} from "./runtime.ts"
 
 const [command, subcommandOrProject, ...rest] = process.argv.slice(2)
 
@@ -43,6 +51,9 @@ try {
   } else if (command === "graph" && subcommandOrProject === "build") {
     const project = requireProject(rest.shift())
     console.log(JSON.stringify(await buildGraphData(project), null, 2))
+  } else if (command === "sessions" && subcommandOrProject === "import") {
+    const project = requireProject(rest.shift())
+    console.log(JSON.stringify(await importOpenCodeSessionGoals(project), null, 2))
   } else if (command === "visual" && subcommandOrProject === "export") {
     const project = requireProject(rest.shift())
     await exportVisual(project)
@@ -97,6 +108,7 @@ function usage() {
   gomr.ts plan <project> --goal "<goal>"
   gomr.ts snapshot <project> --goal "<goal>"
   gomr.ts graph build <project>
+  gomr.ts sessions import <project>
   gomr.ts visual export <project>
   gomr.ts visual serve <project> [--port 8787]`)
 }

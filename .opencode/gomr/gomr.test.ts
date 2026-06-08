@@ -336,6 +336,66 @@ test("visual export builds expanded turn, node, edge, and context block data", a
   }
 })
 
+test("visual export uses imported OpenCode session titles for generic turn goals", async () => {
+  const project = await createProject({
+    "README.md": "# Demo\n\nA parser project.",
+    "src/parser.ts": "export function parse(input: string) { return input.trim() }\n",
+  })
+
+  await run("memory-index.ts", "init", project)
+  await runtime.contextPlan(project, "current OpenCode task", { sessionId: "ses_ABCDef123" })
+  await fs.writeFile(
+    path.join(project, ".orca-memory", "cache", "session-goals.json"),
+    JSON.stringify(
+      {
+        version: 1,
+        sessions: {
+          "ses-abcdef123": {
+            original_id: "ses_ABCDef123",
+            title: "Fix PageIndex memory visualization titles",
+          },
+        },
+      },
+      null,
+      2,
+    ),
+    "utf8",
+  )
+
+  await runtime.exportVisual(project)
+
+  const visualData = JSON.parse(await fs.readFile(path.join(project, ".orca-memory", "visual", "graph-data.json"), "utf8"))
+  const latestTurn = visualData.turns.at(-1)
+  assert.equal(latestTurn.title, "Fix PageIndex memory visualization titles")
+  assert.equal(latestTurn.goal, "Fix PageIndex memory visualization titles")
+  assert.equal(
+    visualData.nodes.some((node) => node.id === "goal/ses-abcdef123/turn-0001" && node.title === "Fix PageIndex memory visualization titles"),
+    true,
+  )
+})
+
+test("runtime imports OpenCode session list titles by normalized session id", async () => {
+  const project = await createProject({
+    "README.md": "# Demo\n",
+    "src/parser.ts": "export const parser = true\n",
+  })
+
+  await run("memory-index.ts", "init", project)
+  const imported = await runtime.importOpenCodeSessionGoals(project, {
+    listOutput: [
+      "Session ID                      Title                      Updated",
+      "ses_1592f41c6ffepHerILBn6FNrl8  验证GOMR可视化轮次标题写入用户目标        18:40",
+      "ses_15979edc4ffetVQ6iVz4GI1Wvq  当前项目理解                     18:40",
+    ].join("\n"),
+  })
+
+  assert.equal(imported.sessions["ses-1592f41c6ffepherilbn6fnrl8"].title, "验证GOMR可视化轮次标题写入用户目标")
+  assert.equal(imported.sessions["ses-15979edc4ffetvq6ivz4gi1wvq"].original_id, "ses_15979edc4ffetVQ6iVz4GI1Wvq")
+
+  const cached = JSON.parse(await fs.readFile(path.join(project, ".orca-memory", "cache", "session-goals.json"), "utf8"))
+  assert.equal(cached.sessions["ses-1592f41c6ffepherilbn6fnrl8"].title, "验证GOMR可视化轮次标题写入用户目标")
+})
+
 test("visual data links selected and excluded nodes to readable node records", async () => {
   const project = await createProject({
     "README.md": "# Demo\n\nA parser project.",

@@ -232,8 +232,8 @@ node --no-warnings --test .opencode/gomr/gomr.test.ts
 Expected result:
 
 ```text
-tests 29
-pass 29
+tests 31
+pass 31
 fail 0
 ```
 
@@ -249,6 +249,7 @@ node --no-warnings .opencode/gomr/gomr.ts ledger update .
 node --no-warnings .opencode/gomr/gomr.ts plan . --goal "fix parser tests"
 node --no-warnings .opencode/gomr/gomr.ts snapshot . --goal "fix parser tests"
 node --no-warnings .opencode/gomr/gomr.ts graph build .
+node --no-warnings .opencode/gomr/gomr.ts sessions import .
 node --no-warnings .opencode/gomr/gomr.ts visual export .
 node --no-warnings .opencode/gomr/gomr.ts visual serve . --port 8787
 ```
@@ -263,7 +264,7 @@ node --no-warnings .opencode/gomr/gomr.ts visual serve . --port 8787
 The UI is a context path explainer rather than a telemetry dashboard. It shows:
 
 - Turn Timeline with raw vs rebuilt context size, reused anchors, and new nodes
-- Real turn goals from the latest user message captured by the OpenCode hook
+- Real turn goals from the latest user message captured by the OpenCode hook, with imported OpenCode session titles as a fallback when the hook input only exposes a generic task name
 - Graph View that highlights the current turn path inside the global history graph
 - Tree View that expands selected and excluded nodes with reasons and scores
 - Compare View showing raw accumulated history vs GOMR rebuilt context

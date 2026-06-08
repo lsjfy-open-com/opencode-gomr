@@ -1,6 +1,8 @@
 import { createHash } from "node:crypto"
+import { execFile } from "node:child_process"
 import fs from "node:fs/promises"
 import path from "node:path"
+import { promisify } from "node:util"
 
 const memoryRoot = ".orca-memory"
 const cacheRoot = path.join(memoryRoot, "cache")
@@ -8,9 +10,11 @@ const traceRoot = path.join(memoryRoot, "traces")
 const pathsRoot = path.join(memoryRoot, "paths")
 const graphRoot = path.join(memoryRoot, "graph")
 const visualRoot = path.join(memoryRoot, "visual")
+const sessionGoalsFile = path.join(cacheRoot, "session-goals.json")
 const ignoredDirs = new Set([".git", "node_modules", ".orca-memory", "dist", "build", ".next", ".turbo"])
 const rootFiles = new Set(["README.md", "package.json", "tsconfig.json", "pyproject.toml", "go.mod", "AGENTS.md"])
 const sourceDirs = new Set(["src", "test", "tests", "packages", ".opencode"])
+const exec = promisify(execFile)
 
 const seedMemoryNodes = [
   {
@@ -378,22 +382,41 @@ export async function exportVisual(project: string) {
   await fs.writeFile(path.join(project, visualRoot, "index.html"), visualHtml(visualData), "utf8")
 }
 
+export async function importOpenCodeSessionGoals(project: string, options: { listOutput?: string } = {}) {
+  await ensureMemory(project)
+  const listOutput = options.listOutput ?? (await runOpenCodeSessionList(project))
+  const imported = parseOpenCodeSessionList(listOutput)
+  const existing = await readSessionGoals(project)
+  const cache = {
+    version: 1,
+    generated_at: new Date().toISOString(),
+    sessions: {
+      ...existing,
+      ...imported,
+    },
+  }
+  await fs.writeFile(path.join(project, sessionGoalsFile), JSON.stringify(cache, null, 2), "utf8")
+  return cache
+}
+
 async function buildVisualData(project: string, graph: { nodes: any[]; edges: any[]; timeline: any[] }) {
   const snapshots = await readSnapshots(project)
   const traces = await readTraces(project)
+  const sessionGoals = await readSessionGoals(project)
   const traceById = new Map(traces.map((trace) => [trace.id, trace]))
   const latestSnapshot = snapshots.at(-1)
   const nodeReasons = new Map<string, string>()
   const nodeRelations = new Map<string, Set<string>>()
 
   for (const snapshot of snapshots) {
+    const displayGoal = displayGoalForSnapshot(snapshot, sessionGoals)
     for (const node of snapshot.selected_path ?? []) {
       nodeReasons.set(node.id, node.reason || "Selected for the reconstructed context path.")
-      addRelation(nodeRelations, node.id, `selected_for_goal: ${snapshot.goal.title}`)
+      addRelation(nodeRelations, node.id, `selected_for_goal: ${displayGoal.title}`)
     }
     for (const node of snapshot.excluded ?? []) {
       nodeReasons.set(node.id, node.reason || "Excluded from this turn's rebuilt context.")
-      addRelation(nodeRelations, node.id, `excluded_by: ${snapshot.goal.title}`)
+      addRelation(nodeRelations, node.id, `excluded_by: ${displayGoal.title}`)
     }
     for (const candidate of snapshot.backtrack_candidates ?? []) {
       addRelation(nodeRelations, candidate.id, "reuse candidate: previous tool evidence can be used before repeating work")
@@ -407,7 +430,8 @@ async function buildVisualData(project: string, graph: { nodes: any[]; edges: an
   }
 
   for (const snapshot of snapshots) {
-    nodesById.set(snapshot.goal.id, visualNodeFromSnapshotNode(snapshot.goal.id, "goal", snapshot.goal.title, snapshot.goal.summary, "user goal", 1))
+    const displayGoal = displayGoalForSnapshot(snapshot, sessionGoals)
+    nodesById.set(snapshot.goal.id, visualNodeFromSnapshotNode(snapshot.goal.id, "goal", displayGoal.title, displayGoal.summary, "user goal", 1))
     for (const node of [...(snapshot.selected_path ?? []), ...(snapshot.excluded ?? [])]) {
       if (!nodesById.has(node.id)) {
         nodesById.set(node.id, visualNodeFromSnapshotNode(node.id, node.type, node.title, node.summary, node.source, node.score, node.reason))
@@ -437,6 +461,7 @@ async function buildVisualData(project: string, graph: { nodes: any[]; edges: an
   })
 
   const turns = snapshots.map((snapshot, index) => {
+    const displayGoal = displayGoalForSnapshot(snapshot, sessionGoals)
     const pathIds = (snapshot.selected_path ?? []).map((node) => node.id)
     const excludedIds = (snapshot.excluded ?? []).map((node) => node.id)
     const reusedAnchors = [
@@ -450,9 +475,9 @@ async function buildVisualData(project: string, graph: { nodes: any[]; edges: an
     const newNodes = snapshot.diff_from_previous_turn?.added ?? pathIds
     return {
       id: snapshot.turn_id,
-      title: snapshot.goal.title || snapshot.turn_id,
+      title: displayGoal.title || snapshot.turn_id,
       time: snapshot.created_at,
-      goal: snapshot.goal.summary || snapshot.goal.title,
+      goal: displayGoal.summary || displayGoal.title,
       rawContextTokens,
       rebuiltContextTokens,
       reusedAnchors,
@@ -642,6 +667,74 @@ function normalizeStoredGoal(goal?: string) {
   const clean = goal?.trim()
   if (!clean || clean === "current OpenCode task" || clean === "Current OpenCode task") return undefined
   return clean
+}
+
+async function readSessionGoals(project: string) {
+  const cache = await fs
+    .readFile(path.join(project, sessionGoalsFile), "utf8")
+    .then((text) => JSON.parse(text))
+    .catch(() => ({}))
+  const sessions = cache.sessions ?? cache
+  return Object.fromEntries(
+    Object.entries(sessions)
+      .map(([sessionId, value]: [string, any]) => {
+        const title = typeof value === "string" ? value : value?.title
+        const clean = normalizeStoredGoal(title)
+        return clean ? [sessionId, { ...(typeof value === "object" ? value : {}), title: clean }] : undefined
+      })
+      .filter(Boolean) as Array<[string, any]>,
+  )
+}
+
+function displayGoalForSnapshot(snapshot: any, sessionGoals: Record<string, { title?: string }>) {
+  const stored = normalizeStoredGoal(snapshot.goal?.summary || snapshot.goal?.title)
+  const imported = normalizeStoredGoal(sessionGoals[snapshot.session_id]?.title)
+  const display = stored || imported || snapshot.goal?.summary || snapshot.goal?.title || "Current OpenCode task"
+  return {
+    title: titleFromGoal(display),
+    summary: display,
+  }
+}
+
+async function runOpenCodeSessionList(project: string) {
+  const candidates =
+    process.platform === "win32"
+      ? [
+          { command: "opencode.cmd", args: ["session", "list"] },
+          { command: "opencode.exe", args: ["session", "list"] },
+          { command: "opencode", args: ["session", "list"] },
+          { command: "powershell.exe", args: ["-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", "opencode session list"] },
+        ]
+      : [{ command: "opencode", args: ["session", "list"] }]
+  const errors: string[] = []
+  for (const { command, args } of candidates) {
+    try {
+      const result = await exec(command, args, { cwd: project, windowsHide: true })
+      return result.stdout
+    } catch (error) {
+      errors.push(error instanceof Error ? error.message : String(error))
+    }
+  }
+  throw new Error(`Unable to run opencode session list. ${errors.join(" | ")}`)
+}
+
+function parseOpenCodeSessionList(output: string) {
+  const sessions: Record<string, { original_id: string; title: string; updated?: string }> = {}
+  for (const line of output.split(/\r?\n/)) {
+    const clean = line.trimEnd()
+    if (!clean || clean.startsWith("Session ID")) continue
+    const match = /^(ses[_A-Za-z0-9-]+)\s{2,}(.+?)(?:\s{2,}(\S.*))?$/.exec(clean)
+    if (!match) continue
+    const [, originalId, rawTitle, updated] = match
+    const title = normalizeStoredGoal(rawTitle)
+    if (!title) continue
+    sessions[normalizeSessionId(originalId)] = {
+      original_id: originalId,
+      title,
+      ...(updated ? { updated: updated.trim() } : {}),
+    }
+  }
+  return sessions
 }
 
 function assignVisualPositions(nodes: any[]) {
