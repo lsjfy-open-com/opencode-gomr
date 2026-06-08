@@ -336,6 +336,66 @@ test("visual export builds expanded turn, node, edge, and context block data", a
   }
 })
 
+test("visual export uses imported OpenCode session titles for generic turn goals", async () => {
+  const project = await createProject({
+    "README.md": "# Demo\n\nA parser project.",
+    "src/parser.ts": "export function parse(input: string) { return input.trim() }\n",
+  })
+
+  await run("memory-index.ts", "init", project)
+  await runtime.contextPlan(project, "current OpenCode task", { sessionId: "ses_ABCDef123" })
+  await fs.writeFile(
+    path.join(project, ".orca-memory", "cache", "session-goals.json"),
+    JSON.stringify(
+      {
+        version: 1,
+        sessions: {
+          "ses-abcdef123": {
+            original_id: "ses_ABCDef123",
+            title: "Fix PageIndex memory visualization titles",
+          },
+        },
+      },
+      null,
+      2,
+    ),
+    "utf8",
+  )
+
+  await runtime.exportVisual(project)
+
+  const visualData = JSON.parse(await fs.readFile(path.join(project, ".orca-memory", "visual", "graph-data.json"), "utf8"))
+  const latestTurn = visualData.turns.at(-1)
+  assert.equal(latestTurn.title, "Fix PageIndex memory visualization titles")
+  assert.equal(latestTurn.goal, "Fix PageIndex memory visualization titles")
+  assert.equal(
+    visualData.nodes.some((node) => node.id === "goal/ses-abcdef123/turn-0001" && node.title === "Fix PageIndex memory visualization titles"),
+    true,
+  )
+})
+
+test("runtime imports OpenCode session list titles by normalized session id", async () => {
+  const project = await createProject({
+    "README.md": "# Demo\n",
+    "src/parser.ts": "export const parser = true\n",
+  })
+
+  await run("memory-index.ts", "init", project)
+  const imported = await runtime.importOpenCodeSessionGoals(project, {
+    listOutput: [
+      "Session ID                      Title                      Updated",
+      "ses_1592f41c6ffepHerILBn6FNrl8  验证GOMR可视化轮次标题写入用户目标        18:40",
+      "ses_15979edc4ffetVQ6iVz4GI1Wvq  当前项目理解                     18:40",
+    ].join("\n"),
+  })
+
+  assert.equal(imported.sessions["ses-1592f41c6ffepherilbn6fnrl8"].title, "验证GOMR可视化轮次标题写入用户目标")
+  assert.equal(imported.sessions["ses-15979edc4ffetvq6ivz4gi1wvq"].original_id, "ses_15979edc4ffetVQ6iVz4GI1Wvq")
+
+  const cached = JSON.parse(await fs.readFile(path.join(project, ".orca-memory", "cache", "session-goals.json"), "utf8"))
+  assert.equal(cached.sessions["ses-1592f41c6ffepherilbn6fnrl8"].title, "验证GOMR可视化轮次标题写入用户目标")
+})
+
 test("visual data links selected and excluded nodes to readable node records", async () => {
   const project = await createProject({
     "README.md": "# Demo\n\nA parser project.",
@@ -507,6 +567,58 @@ test("plugin injects a context plan into system context", async () => {
   assert.equal(await exists(path.join(project, ".orca-memory", "index.json")), true)
   assert.equal(output.system.some((entry) => entry.includes("Goal-Oriented Memory Runtime")), true)
   assert.equal(output.system.some((entry) => entry.includes("context-plan")), true)
+})
+
+test("plugin uses the latest user message as the context plan goal", async () => {
+  const project = await createProject({
+    "README.md": "# Demo\n",
+    "src/parser.ts": "export const parser = true\n",
+  })
+  const hooks = await pluginHooks(project)
+  const output = { system: [] as string[] }
+
+  await hooks["experimental.chat.system.transform"](
+    {
+      sessionID: "session-1",
+      model: {},
+      messages: [
+        { role: "user", content: "Improve PageIndex retrieval summaries" },
+        { role: "assistant", content: "I'll inspect the repo." },
+        { role: "user", content: "Add real goal titles to the GOMR visualization" },
+      ],
+    },
+    output,
+  )
+
+  const latest = JSON.parse(await fs.readFile(path.join(project, ".orca-memory", "paths", "latest.json"), "utf8"))
+  assert.equal(latest.goal.summary, "Add real goal titles to the GOMR visualization")
+  assert.equal(output.system.some((entry) => entry.includes("Add real goal titles to the GOMR visualization")), true)
+})
+
+test("plugin preserves the recorded goal when refreshing snapshots after tools", async () => {
+  const project = await createProject({
+    "README.md": "# Demo\n",
+    "src/parser.ts": "export const parser = true\n",
+  })
+  const hooks = await pluginHooks(project)
+
+  await hooks["experimental.chat.system.transform"](
+    {
+      sessionID: "session-1",
+      model: {},
+      messages: [{ role: "user", content: [{ type: "text", text: "Render real GOMR turn goals" }] }],
+    },
+    { system: [] as string[] },
+  )
+  await hooks["tool.execute.after"](
+    { tool: "read", sessionID: "session-1", callID: "call-1", args: { filePath: "src/parser.ts" } },
+    { title: "Read src/parser.ts", output: "Parser core", metadata: {} },
+  )
+
+  const latest = JSON.parse(await fs.readFile(path.join(project, ".orca-memory", "paths", "latest.json"), "utf8"))
+  const visualData = JSON.parse(await fs.readFile(path.join(project, ".orca-memory", "visual", "graph-data.json"), "utf8"))
+  assert.equal(latest.goal.summary, "Render real GOMR turn goals")
+  assert.equal(visualData.turns.at(-1).goal, "Render real GOMR turn goals")
 })
 
 test("plugin records tool traces after tool execution", async () => {

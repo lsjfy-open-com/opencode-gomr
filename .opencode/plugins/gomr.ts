@@ -1,10 +1,13 @@
-import { buildContextState, captureToolTrace, compactingContext, contextPlan, exportVisual, initMemory } from "../gomr/runtime.ts"
+import { buildContextState, captureToolTrace, compactingContext, contextPlan, exportVisual, initMemory, readCurrentGoal } from "../gomr/runtime.ts"
 
 export const GomrPlugin = async ({ directory, worktree }) => {
   const project = directory || worktree
+  const sessionGoals = new Map()
   return {
-    "experimental.chat.system.transform": async (_input, output) => {
+    "experimental.chat.system.transform": async (input, output) => {
       await initMemory(project)
+      const goal = goalFromInput(input) || (await readCurrentGoal(project)) || "current OpenCode task"
+      if (input?.sessionID) sessionGoals.set(input.sessionID, goal)
       output.system.push(
         [
           "## Goal-Oriented Memory Runtime",
@@ -16,11 +19,12 @@ export const GomrPlugin = async ({ directory, worktree }) => {
           "- Never full-load `.orca-memory`; never directly overwrite memory files without a patch-style review.",
           "",
           "Current context-plan:",
-          JSON.stringify(await contextPlan(project, "current OpenCode task"), null, 2),
+          JSON.stringify(await contextPlan(project, goal, { sessionId: input?.sessionID }), null, 2),
         ].join("\n"),
       )
     },
     "tool.execute.after": async (input, output) => {
+      const goal = sessionGoals.get(input.sessionID) || (await readCurrentGoal(project)) || goalFromInput(input) || "current OpenCode task"
       await captureToolTrace(
         project,
         input.tool,
@@ -30,7 +34,7 @@ export const GomrPlugin = async ({ directory, worktree }) => {
         { sessionId: input.sessionID, output: String(output.output || "") },
       )
       await buildContextState(project)
-      await contextPlan(project, "current OpenCode task", { sessionId: input.sessionID })
+      await contextPlan(project, goal, { sessionId: input.sessionID })
       await exportVisual(project)
     },
     "experimental.session.compacting": async (_input, output) => {
@@ -46,4 +50,40 @@ function normalizeTarget(args) {
   if (typeof args?.path === "string") return args.path
   if (typeof args?.command === "string") return args.command
   return "unknown"
+}
+
+function goalFromInput(input) {
+  const fromMessages = latestUserMessage(input?.messages || input?.conversation || input?.history)
+  return cleanGoal(
+    fromMessages ||
+      contentText(input?.goal) ||
+      contentText(input?.prompt) ||
+      contentText(input?.message) ||
+      contentText(input?.context?.goal) ||
+      contentText(input?.session?.title),
+  )
+}
+
+function latestUserMessage(messages) {
+  if (!Array.isArray(messages)) return undefined
+  for (let index = messages.length - 1; index >= 0; index--) {
+    const message = messages[index]
+    if (message?.role && message.role !== "user") continue
+    const text = contentText(message?.content || message?.text || message)
+    if (text) return text
+  }
+  return undefined
+}
+
+function contentText(value) {
+  if (typeof value === "string") return value
+  if (Array.isArray(value)) return value.map(contentText).filter(Boolean).join("\n")
+  if (value && typeof value === "object") return contentText(value.text || value.content || value.value)
+  return undefined
+}
+
+function cleanGoal(value) {
+  const clean = value?.replace(/\s+/g, " ").trim()
+  if (!clean || clean === "current OpenCode task" || clean === "Current OpenCode task") return undefined
+  return clean.length > 240 ? `${clean.slice(0, 237)}...` : clean
 }
