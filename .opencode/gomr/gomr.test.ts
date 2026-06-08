@@ -628,7 +628,7 @@ test("gomr CLI snapshot returns the generated turn snapshot", async () => {
   assert.equal(await exists(path.join(project, ".orca-memory", "paths", `${snapshot.turn_id}.json`)), true)
 })
 
-test("plugin injects a context plan into system context", async () => {
+test("plugin observes and records context plans without injecting system context by default", async () => {
   const project = await createProject({
     "README.md": "# Demo\n",
     "src/parser.ts": "export const parser = true\n",
@@ -639,11 +639,33 @@ test("plugin injects a context plan into system context", async () => {
   await hooks["experimental.chat.system.transform"]({ sessionID: "session-1", model: {} }, output)
 
   assert.equal(await exists(path.join(project, ".orca-memory", "index.json")), true)
-  assert.equal(output.system.some((entry) => entry.includes("Goal-Oriented Memory Runtime")), true)
-  assert.equal(output.system.some((entry) => entry.includes("context-plan")), true)
+  assert.equal(await exists(path.join(project, ".orca-memory", "paths", "latest.json")), true)
+  assert.equal(output.system.length, 0)
 })
 
-test("plugin uses the latest user message as the context plan goal", async () => {
+test("plugin injects a context plan only when GOMR_MODE is inject", async () => {
+  const project = await createProject({
+    "README.md": "# Demo\n",
+    "src/parser.ts": "export const parser = true\n",
+  })
+  const previous = process.env.GOMR_MODE
+  process.env.GOMR_MODE = "inject"
+  try {
+    const hooks = await pluginHooks(project)
+    const output = { system: [] as string[] }
+
+    await hooks["experimental.chat.system.transform"]({ sessionID: "session-1", model: {} }, output)
+
+    assert.equal(await exists(path.join(project, ".orca-memory", "index.json")), true)
+    assert.equal(output.system.some((entry) => entry.includes("Goal-Oriented Memory Runtime")), true)
+    assert.equal(output.system.some((entry) => entry.includes("context-plan")), true)
+  } finally {
+    if (previous === undefined) delete process.env.GOMR_MODE
+    else process.env.GOMR_MODE = previous
+  }
+})
+
+test("plugin uses the latest user message as the context plan goal without injecting by default", async () => {
   const project = await createProject({
     "README.md": "# Demo\n",
     "src/parser.ts": "export const parser = true\n",
@@ -666,7 +688,40 @@ test("plugin uses the latest user message as the context plan goal", async () =>
 
   const latest = JSON.parse(await fs.readFile(path.join(project, ".orca-memory", "paths", "latest.json"), "utf8"))
   assert.equal(latest.goal.summary, "Add real goal titles to the GOMR visualization")
-  assert.equal(output.system.some((entry) => entry.includes("Add real goal titles to the GOMR visualization")), true)
+  assert.equal(output.system.length, 0)
+})
+
+test("plugin includes the latest user goal in injected context when GOMR_MODE is inject", async () => {
+  const project = await createProject({
+    "README.md": "# Demo\n",
+    "src/parser.ts": "export const parser = true\n",
+  })
+  const previous = process.env.GOMR_MODE
+  process.env.GOMR_MODE = "inject"
+  try {
+    const hooks = await pluginHooks(project)
+    const output = { system: [] as string[] }
+
+    await hooks["experimental.chat.system.transform"](
+      {
+        sessionID: "session-1",
+        model: {},
+        messages: [
+          { role: "user", content: "Improve PageIndex retrieval summaries" },
+          { role: "assistant", content: "I'll inspect the repo." },
+          { role: "user", content: "Add real goal titles to the GOMR visualization" },
+        ],
+      },
+      output,
+    )
+
+    const latest = JSON.parse(await fs.readFile(path.join(project, ".orca-memory", "paths", "latest.json"), "utf8"))
+    assert.equal(latest.goal.summary, "Add real goal titles to the GOMR visualization")
+    assert.equal(output.system.some((entry) => entry.includes("Add real goal titles to the GOMR visualization")), true)
+  } finally {
+    if (previous === undefined) delete process.env.GOMR_MODE
+    else process.env.GOMR_MODE = previous
+  }
 })
 
 test("plugin preserves the recorded goal when refreshing snapshots after tools", async () => {
@@ -717,7 +772,7 @@ test("plugin records tool traces after tool execution", async () => {
   assert.equal(await exists(path.join(project, ".orca-memory", "paths", "latest.json")), true)
 })
 
-test("plugin injects execution ledger context during compaction", async () => {
+test("plugin does not inject execution ledger context during compaction by default", async () => {
   const project = await createProject({
     "README.md": "# Demo\n",
     "src/parser.ts": "export const parser = true\n",
@@ -731,8 +786,32 @@ test("plugin injects execution ledger context during compaction", async () => {
   )
   await hooks["experimental.session.compacting"]({ sessionID: "session-1" }, output)
 
-  assert.equal(output.context.some((entry) => entry.includes("GOMR Execution Ledger")), true)
-  assert.equal(output.context.some((entry) => entry.includes("src/parser.ts")), true)
+  assert.equal(output.context.length, 0)
+})
+
+test("plugin injects execution ledger context during compaction only when GOMR_MODE is inject", async () => {
+  const project = await createProject({
+    "README.md": "# Demo\n",
+    "src/parser.ts": "export const parser = true\n",
+  })
+  const previous = process.env.GOMR_MODE
+  process.env.GOMR_MODE = "inject"
+  try {
+    const hooks = await pluginHooks(project)
+    const output = { context: [] as string[] }
+
+    await hooks["tool.execute.after"](
+      { tool: "read", sessionID: "session-1", callID: "call-1", args: { filePath: "src/parser.ts" } },
+      { title: "Read src/parser.ts", output: "Parser core", metadata: {} },
+    )
+    await hooks["experimental.session.compacting"]({ sessionID: "session-1" }, output)
+
+    assert.equal(output.context.some((entry) => entry.includes("GOMR Execution Ledger")), true)
+    assert.equal(output.context.some((entry) => entry.includes("src/parser.ts")), true)
+  } finally {
+    if (previous === undefined) delete process.env.GOMR_MODE
+    else process.env.GOMR_MODE = previous
+  }
 })
 
 test("agent, skill, and root protocol describe GOMR guardrails", async () => {

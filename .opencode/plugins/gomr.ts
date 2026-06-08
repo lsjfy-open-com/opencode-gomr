@@ -22,7 +22,7 @@ export const GomrPlugin = async ({ directory, worktree }) => {
       const plan = userGoal
         ? await contextPlan(project, goal, { sessionId: input?.sessionID })
         : await readCurrentPlan(project)
-      output.system.push(gomrSystemContextText(plan))
+      if (gomrMode() === "inject") output.system.push(gomrSystemContextText(plan))
     },
     "tool.execute.after": async (input, output) => {
       const goal = sessionGoals.get(input.sessionID) || (await readCurrentGoal(project)) || goalFromInput(input) || "current OpenCode task"
@@ -39,7 +39,7 @@ export const GomrPlugin = async ({ directory, worktree }) => {
       await exportVisual(project)
     },
     "experimental.session.compacting": async (_input, output) => {
-      output.context.push(await compactingContext(project))
+      if (gomrMode() === "inject") output.context.push(await compactingContext(project))
     },
   }
 }
@@ -89,4 +89,9 @@ function cleanGoal(value) {
   const firstSentence = clean.split(/[.?!。？！\n]\s*/)[0].trim()
   const best = firstSentence || clean
   return best.length > 240 ? `${best.slice(0, 237)}...` : best
+}
+
+function gomrMode() {
+  const mode = String(process.env.GOMR_MODE || "observe").toLowerCase()
+  return mode === "inject" ? "inject" : "observe"
 }

@@ -1,6 +1,6 @@
 # OpenCode GOMR
 
-Goal-Oriented Memory Runtime (GOMR) is a project-level OpenCode extension for preserving agent state without full-context reloads. It creates a local `.orca-memory` store, builds goal-oriented context plans, captures tool traces, and injects execution-ledger state into OpenCode sessions and compaction.
+Goal-Oriented Memory Runtime (GOMR) is a project-level OpenCode extension for preserving agent state without full-context reloads. It creates a local `.orca-memory` store, builds goal-oriented context plans, captures tool traces, and exports visual/telemetry evidence. By default it observes and records only; it does not add GOMR text to OpenCode prompts.
 
 GOMR is intentionally not a vector database, embedding pipeline, GraphRAG system, or automatic memory-evolution engine. The MVP focuses on deterministic state continuity for coding agents.
 
@@ -38,9 +38,9 @@ Goal
 - Context-state snapshot generation
 - Expanded visual export with turn timeline, graph view, tree view, compare view, node detail, auto-play, and latest-turn polling
 - OpenCode plugin hooks for:
-  - system context injection
+  - observe-only context planning by default
   - tool trace capture
-  - session compaction context
+  - optional experimental injection with `GOMR_MODE=inject`
 - `context-router` OpenCode agent
 - `context-path-builder` OpenCode skill
 - Windows and macOS/Linux installer scripts
@@ -232,8 +232,8 @@ node --no-warnings --test .opencode/gomr/gomr.test.ts
 Expected result:
 
 ```text
-tests 34
-pass 34
+tests 37
+pass 37
 fail 0
 ```
 
@@ -271,9 +271,11 @@ The UI is a context path explainer rather than a telemetry dashboard. It shows:
 - Compare View showing raw accumulated history vs GOMR rebuilt context
 - Node Detail with trace metadata, digests, evidence path, relations, and anchor reuse
 
-Token counts are estimates over measurable text, not project size. Raw context uses captured tool output lengths plus local trace/ledger/path evidence that would otherwise accumulate. Rebuilt context uses the actual GOMR system/context-plan text injected by the plugin after path selection replaces that raw history.
+Token counts are estimates over measurable text, not project size. Raw context uses captured tool output lengths plus local trace/ledger/path evidence that would otherwise accumulate. In the default observe mode, GOMR does not reduce the live OpenCode prompt; `gomrContextTokens` is only the theoretical context-plan size.
 
 When `@ljw1004/opencode-trace` is installed, `telemetry import` reads `~/opencode-trace` and imports provider-reported prompt usage. Visual `rebuiltContextTokens` then prefers observed prompt tokens from telemetry, while `gomrContextTokens` keeps the smaller theoretical GOMR context-plan injection size for comparison.
+
+`GOMR_MODE=inject` is available only as an explicit experiment. It adds the GOMR context-plan to OpenCode system context and can increase prompt size unless a separate pre-send replacement/pruning layer is implemented.
 
 Build a context plan:
 
@@ -329,8 +331,8 @@ The plugin uses OpenCode hooks:
 
 - `experimental.chat.system.transform`
   - initializes `.orca-memory`
-  - injects GOMR protocol
-  - injects the current context plan
+  - records the current context plan without injecting it by default
+  - injects the GOMR protocol and context plan only when `GOMR_MODE=inject`
 - `tool.execute.after`
   - records the tool, target, status, summary, digest, evidence, and relevance reason
   - appends durable JSONL under `.orca-memory/traces/session-<id>.jsonl`
@@ -339,7 +341,7 @@ The plugin uses OpenCode hooks:
   - refreshes `.orca-memory/cache/context-state.json`
   - refreshes `.orca-memory/paths/latest.json`, graph data, and visual export
 - `experimental.session.compacting`
-  - injects execution-ledger and context-state content into compaction
+  - injects execution-ledger and context-state content into compaction only when `GOMR_MODE=inject`
 
 ## Context Plan Shape
 
