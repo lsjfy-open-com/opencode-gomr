@@ -81,6 +81,60 @@ OpenCode can load the bundled `.ts` plugin directly. The scripts are TypeScript/
 
 ## Installation
 
+GOMR supports two installation modes:
+
+- **Global Install**: install once into the OpenCode user config directory. Every project opened by OpenCode can use the same GOMR plugin, and each project gets its own `.orca-memory`.
+- **Project Install**: copy GOMR into one project's `.opencode/` directory. This is best when a team wants to commit the extension and pin its version per repository.
+
+Use global install for personal default behavior across projects. Use project install for shared team repositories or experiments that should not affect other projects.
+
+## Global Install
+
+### Windows
+
+From this repository directory:
+
+```powershell
+.\install-global.ps1
+```
+
+This installs to:
+
+```text
+%USERPROFILE%\.config\opencode
+```
+
+You can override the target:
+
+```powershell
+.\install-global.ps1 -ConfigPath "D:\custom\opencode-config"
+```
+
+### macOS/Linux
+
+From this repository directory:
+
+```bash
+chmod +x ./install-global.sh
+./install-global.sh
+```
+
+This installs to:
+
+```text
+~/.config/opencode
+```
+
+You can override the target:
+
+```bash
+./install-global.sh /custom/opencode-config
+```
+
+After global install, restart OpenCode. The plugin loads from the global config directory and creates `.orca-memory` inside each active project directory.
+
+## Project Install
+
 ### Windows
 
 From this repository directory:

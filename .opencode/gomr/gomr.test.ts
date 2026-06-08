@@ -163,6 +163,19 @@ test("agent, skill, and root protocol describe GOMR guardrails", async () => {
   }
 })
 
+test("repository includes global OpenCode installers", async () => {
+  const root = path.resolve(import.meta.dirname, "../..")
+  const powershell = await fs.readFile(path.join(root, "install-global.ps1"), "utf8")
+  const shell = await fs.readFile(path.join(root, "install-global.sh"), "utf8")
+  const readme = await fs.readFile(path.join(root, "README.md"), "utf8")
+
+  assert.equal(powershell.includes("$env:USERPROFILE\\.config\\opencode"), true)
+  assert.equal(powershell.includes(".opencode\\plugins\\gomr.ts"), true)
+  assert.equal(shell.includes("${HOME}/.config/opencode"), true)
+  assert.equal(shell.includes(".opencode/plugins/gomr.ts"), true)
+  assert.equal(readme.includes("Global Install"), true)
+})
+
 async function createProject(files: Record<string, string>) {
   const dir = await fs.mkdtemp(path.join(os.tmpdir(), "gomr-test-"))
   tempProjects.push(dir)
