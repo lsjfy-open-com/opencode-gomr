@@ -76,6 +76,30 @@ test("capture-tool-trace appends JSONL and updates the execution ledger", async 
   )
 })
 
+test("memory-index init preserves existing runtime records", async () => {
+  const project = await createProject({
+    "README.md": "# Demo\n",
+    "src/parser.ts": "export const parser = true\n",
+  })
+
+  await run("memory-index.ts", "init", project)
+  await run("capture-tool-trace.ts", project, "read", "src/parser.ts", "success", "Parser core")
+  await run("memory-index.ts", "init", project)
+
+  assert.equal(
+    (await fs.readFile(path.join(project, ".orca-memory", "cache", "tool-trace.jsonl"), "utf8")).includes(
+      "src/parser.ts",
+    ),
+    true,
+  )
+  assert.equal(
+    (await fs.readFile(path.join(project, ".orca-memory", "cache", "execution-ledger.md"), "utf8")).includes(
+      "src/parser.ts",
+    ),
+    true,
+  )
+})
+
 test("build-context-state summarizes index, trace, and ledger state", async () => {
   const project = await createProject({
     "README.md": "# Demo\n",

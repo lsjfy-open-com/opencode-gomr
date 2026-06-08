@@ -215,8 +215,8 @@ node --no-warnings --test .opencode/gomr/gomr.test.ts
 Expected result:
 
 ```text
-tests 8
-pass 8
+tests 10
+pass 10
 fail 0
 ```
 
@@ -244,6 +244,30 @@ Run the test suite:
 
 ```bash
 node --no-warnings --test .opencode/gomr/gomr.test.ts
+```
+
+## Troubleshooting Empty Records
+
+If `.orca-memory/index.md` exists but `.orca-memory/cache/tool-trace.jsonl` and
+`.orca-memory/cache/execution-ledger.md` are empty, update to this version and
+restart OpenCode.
+
+Older GOMR versions re-ran `initMemory()` from
+`experimental.chat.system.transform` on every chat turn and recreated runtime
+cache files. That could erase records captured by `tool.execute.after`.
+
+To recover what is still available:
+
+1. Open `.orca-memory/cache/context-state.json`.
+2. If it has a `ledger` field, copy that string back into
+   `.orca-memory/cache/execution-ledger.md`.
+3. Treat `.orca-memory/cache/tool-trace.jsonl` as best-effort only. If it was
+   overwritten, exact JSONL entries cannot be fully recovered unless another
+   backup or editor history still has them.
+4. Run:
+
+```bash
+node --no-warnings .opencode/gomr/build-context-state.ts .
 ```
 
 ## OpenCode Lifecycle

@@ -24,8 +24,8 @@ export async function initMemory(project: string) {
     fs.writeFile(path.join(project, memoryRoot, "profile.md"), profileMarkdown(project), "utf8"),
     fs.writeFile(path.join(project, memoryRoot, "architecture.md"), await architectureMarkdown(project), "utf8"),
     fs.writeFile(path.join(project, memoryRoot, "goals.md"), goalsMarkdown(), "utf8"),
-    fs.writeFile(path.join(project, cacheRoot, "execution-ledger.md"), ledgerMarkdown(), "utf8"),
-    fs.writeFile(path.join(project, cacheRoot, "tool-trace.jsonl"), "", "utf8"),
+    writeFileIfMissing(path.join(project, cacheRoot, "execution-ledger.md"), ledgerMarkdown()),
+    writeFileIfMissing(path.join(project, cacheRoot, "tool-trace.jsonl"), ""),
   ])
   await fs.writeFile(
     path.join(project, memoryRoot, "index.json"),
@@ -280,4 +280,9 @@ async function exists(file: string) {
     () => true,
     () => false,
   )
+}
+
+async function writeFileIfMissing(file: string, content: string) {
+  if (await exists(file)) return
+  await fs.writeFile(file, content, "utf8")
 }
