@@ -64,6 +64,7 @@ OpenCode can load the bundled `.ts` plugin directly. The scripts are TypeScript/
 |   |   +-- build-context-state.ts
 |   |   +-- capture-tool-trace.ts
 |   |   +-- context-plan.ts
+|   |   +-- gomr.ts
 |   |   +-- gomr.test.ts
 |   |   +-- memory-index.ts
 |   |   +-- runtime.ts
@@ -193,14 +194,29 @@ This creates:
 +-- architecture.md
 +-- goals.md
 +-- modules/
+|   +-- gomr-runtime.md
+|   +-- context-router.md
+|   +-- tool-trace.md
+|   +-- visualization.md
 +-- decisions/
+|   +-- 0001-gomr-v0.2-memory-model.md
 +-- tasks/
 +-- sessions/
 +-- pitfalls/
++-- traces/
++-- paths/
++|   +-- latest.json
++-- graph/
++|   +-- nodes.json
++|   +-- edges.json
++|   +-- timeline.json
++|   +-- graph-data.json
 +-- cache/
 |   +-- execution-ledger.md
 |   +-- tool-trace.jsonl
 |   +-- context-state.json
++|   +-- dirty-files.json
++-- visual/
 +-- archive/
 ```
 
@@ -215,12 +231,26 @@ node --no-warnings --test .opencode/gomr/gomr.test.ts
 Expected result:
 
 ```text
-tests 10
-pass 10
+tests 23
+pass 23
 fail 0
 ```
 
 ## Commands
+
+Unified v0.2 command wrapper:
+
+```bash
+node --no-warnings .opencode/gomr/gomr.ts init .
+node --no-warnings .opencode/gomr/gomr.ts index .
+node --no-warnings .opencode/gomr/gomr.ts trace append . --tool read --target src/parser.ts --status success --summary "Parser core"
+node --no-warnings .opencode/gomr/gomr.ts ledger update .
+node --no-warnings .opencode/gomr/gomr.ts plan . --goal "fix parser tests"
+node --no-warnings .opencode/gomr/gomr.ts snapshot . --goal "fix parser tests"
+node --no-warnings .opencode/gomr/gomr.ts graph build .
+node --no-warnings .opencode/gomr/gomr.ts visual export .
+node --no-warnings .opencode/gomr/gomr.ts visual serve . --port 8787
+```
 
 Build a context plan:
 
@@ -279,9 +309,12 @@ The plugin uses OpenCode hooks:
   - injects GOMR protocol
   - injects the current context plan
 - `tool.execute.after`
-  - records the tool, target, status, summary, and timestamp
+  - records the tool, target, status, summary, digest, evidence, and relevance reason
+  - appends durable JSONL under `.orca-memory/traces/session-<id>.jsonl`
+  - mirrors traces to `.orca-memory/cache/tool-trace.jsonl` for compatibility
   - updates `.orca-memory/cache/execution-ledger.md`
   - refreshes `.orca-memory/cache/context-state.json`
+  - refreshes `.orca-memory/paths/latest.json`, graph data, and visual export
 - `experimental.session.compacting`
   - injects execution-ledger and context-state content into compaction
 
@@ -299,12 +332,32 @@ Example:
   ],
   "runtime_state": [
     ".orca-memory/cache/execution-ledger.md",
-    ".orca-memory/cache/context-state.json"
+    ".orca-memory/cache/context-state.json",
+    ".orca-memory/paths/latest.json"
   ],
   "workspace": [
     "tests/parser.test.ts",
     "src/parser.ts"
-  ]
+  ],
+  "snapshot": {
+    "turn_id": "turn-0001",
+    "selected_path": [
+      {
+        "id": "goal/session-default/turn-0001",
+        "type": "goal",
+        "title": "fix parser tests",
+        "summary": "fix parser tests",
+        "reason": "The user goal is the root of the selected context path."
+      }
+    ],
+    "excluded": [],
+    "diff_from_previous_turn": {
+      "added": [],
+      "removed": [],
+      "kept": []
+    },
+    "backtrack_candidates": []
+  }
 }
 ```
 

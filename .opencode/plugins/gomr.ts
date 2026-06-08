@@ -1,4 +1,4 @@
-import { buildContextState, captureToolTrace, compactingContext, contextPlan, initMemory } from "../gomr/runtime.ts"
+import { buildContextState, captureToolTrace, compactingContext, contextPlan, exportVisual, initMemory } from "../gomr/runtime.ts"
 
 export const GomrPlugin = async ({ directory, worktree }) => {
   const project = directory || worktree
@@ -27,8 +27,11 @@ export const GomrPlugin = async ({ directory, worktree }) => {
         normalizeTarget(input.args),
         "success",
         output.title || String(output.output || "").slice(0, 160) || "Tool completed",
+        { sessionId: input.sessionID, output: String(output.output || "") },
       )
       await buildContextState(project)
+      await contextPlan(project, "current OpenCode task", { sessionId: input.sessionID })
+      await exportVisual(project)
     },
     "experimental.session.compacting": async (_input, output) => {
       output.context.push(await compactingContext(project))

@@ -6,6 +6,8 @@ import path from "node:path"
 import { afterEach, test } from "node:test"
 import { promisify } from "node:util"
 
+import * as runtime from "./runtime.ts"
+
 const tempProjects: string[] = []
 const exec = promisify(execFile)
 
@@ -29,6 +31,43 @@ test("memory-index init creates the memory store", async () => {
   assert.equal(await exists(path.join(project, ".orca-memory", "cache", "execution-ledger.md")), true)
 })
 
+test("memory-index init creates non-empty v0.2 memory, path, and graph seeds", async () => {
+  const project = await createProject({
+    "README.md": "# Demo\n\nA parser project.",
+    "AGENTS.md": "## Goal-Oriented Memory Runtime (GOMR)\n",
+    "src/parser.ts": "export function parse(input: string) { return input.trim() }\n",
+    "tests/parser.test.ts": "import { test } from 'node:test'\n",
+  })
+
+  await run("memory-index.ts", "init", project)
+
+  for (const file of [
+    ".orca-memory/profile.md",
+    ".orca-memory/architecture.md",
+    ".orca-memory/goals.md",
+    ".orca-memory/modules/gomr-runtime.md",
+    ".orca-memory/modules/context-router.md",
+    ".orca-memory/modules/tool-trace.md",
+    ".orca-memory/modules/visualization.md",
+    ".orca-memory/decisions/0001-gomr-v0.2-memory-model.md",
+  ]) {
+    const content = await fs.readFile(path.join(project, file), "utf8")
+    assert.match(content, /^---\nid: memory\//)
+    assert.match(content, /summary: .+/)
+    assert.match(content, /## Summary\n\n.+/)
+  }
+
+  const nodes = JSON.parse(await fs.readFile(path.join(project, ".orca-memory", "graph", "nodes.json"), "utf8"))
+  assert.equal(nodes.some((node) => node.id === "memory/profile"), true)
+  assert.equal(nodes.some((node) => node.id === "memory/modules/context-router"), true)
+  assert.equal(nodes.some((node) => node.id === "memory/modules/tool-trace"), true)
+  assert.equal(nodes.some((node) => node.id === "memory/modules/visualization"), true)
+
+  const latest = JSON.parse(await fs.readFile(path.join(project, ".orca-memory", "paths", "latest.json"), "utf8"))
+  assert.equal(latest.turn_id, "turn-0000")
+  assert.equal(Array.isArray(latest.selected_path), true)
+})
+
 test("context-plan includes runtime state and goal-relevant workspace files", async () => {
   const project = await createProject({
     "README.md": "# Demo\n\nA parser project.",
@@ -43,6 +82,28 @@ test("context-plan includes runtime state and goal-relevant workspace files", as
   assert.equal(plan.goal, "fix parser tests")
   assert.equal(plan.runtime_state.includes(".orca-memory/cache/execution-ledger.md"), true)
   assert.equal(plan.workspace.includes("src/parser.ts"), true)
+})
+
+test("context-plan generates a path snapshot with readable selected, excluded, diff, and backtrack nodes", async () => {
+  const project = await createProject({
+    "README.md": "# Demo\n\nA parser project.",
+    "src/parser.ts": "export function parse(input: string) { return input.trim() }\n",
+    "src/render.ts": "export function render(input: string) { return input }\n",
+  })
+
+  await run("memory-index.ts", "init", project)
+  await run("capture-tool-trace.ts", project, "read", "src/parser.ts", "success", "Parser core")
+  const plan = JSON.parse((await run("context-plan.ts", project, "fix parser tests")).stdout)
+
+  assert.equal(plan.snapshot.turn_id.startsWith("turn-"), true)
+  assert.equal(plan.snapshot.selected_path.every((node) => node.title && node.summary), true)
+  assert.equal(plan.snapshot.excluded.every((node) => node.reason), true)
+  assert.equal(Array.isArray(plan.snapshot.diff_from_previous_turn.added), true)
+  assert.equal(plan.snapshot.backtrack_candidates.length > 0, true)
+
+  const latest = JSON.parse(await fs.readFile(path.join(project, ".orca-memory", "paths", "latest.json"), "utf8"))
+  assert.equal(latest.turn_id, plan.snapshot.turn_id)
+  assert.equal(await exists(path.join(project, ".orca-memory", "paths", `${plan.snapshot.turn_id}.json`)), true)
 })
 
 test("capture-tool-trace appends JSONL and updates the execution ledger", async () => {
@@ -74,6 +135,102 @@ test("capture-tool-trace appends JSONL and updates the execution ledger", async 
     ),
     true,
   )
+})
+
+test("capture-tool-trace persists v0.2 session traces with digests and ledger table rows", async () => {
+  const project = await createProject({
+    "README.md": "# Demo\n",
+    "src/parser.ts": "export const parser = true\n",
+  })
+
+  await run("memory-index.ts", "init", project)
+  await run("capture-tool-trace.ts", project, "read", "src/parser.ts", "success", "Parser core")
+
+  const traceFile = path.join(project, ".orca-memory", "traces", "session-default.jsonl")
+  const trace = JSON.parse((await fs.readFile(traceFile, "utf8")).trim())
+  assert.equal(trace.session_id, "session-default")
+  assert.equal(trace.turn_id.startsWith("turn-"), true)
+  assert.equal(trace.target, "src/parser.ts")
+  assert.equal(trace.status, "success")
+  assert.equal(trace.summary, "Parser core")
+  assert.match(trace.input_digest, /^sha256:/)
+  assert.match(trace.output_digest, /^sha256:/)
+  assert.equal(trace.context_relevance.reason.includes("current goal"), true)
+
+  const ledger = await fs.readFile(path.join(project, ".orca-memory", "cache", "execution-ledger.md"), "utf8")
+  assert.equal(ledger.includes("| Path | Summary | Last Turn | Digest |"), true)
+  assert.equal(ledger.includes("| src/parser.ts | Parser core |"), true)
+})
+
+test("failed traces are recorded as failed attempts before tool category rows", async () => {
+  const project = await createProject({
+    "README.md": "# Demo\n",
+    "src/parser.ts": "export const parser = true\n",
+  })
+
+  await run("memory-index.ts", "init", project)
+  await run("capture-tool-trace.ts", project, "read", "src/missing.ts", "failed", "File was missing")
+
+  const ledger = await fs.readFile(path.join(project, ".orca-memory", "cache", "execution-ledger.md"), "utf8")
+  const failedSection = section(ledger, "Failed Attempts")
+  const readSection = section(ledger, "Files Already Read")
+  assert.equal(failedSection.includes("src/missing.ts"), true)
+  assert.equal(readSection.includes("src/missing.ts"), false)
+})
+
+test("ledger updates current goal when a context plan is generated", async () => {
+  const project = await createProject({
+    "README.md": "# Demo\n",
+    "src/parser.ts": "export const parser = true\n",
+  })
+
+  await run("memory-index.ts", "init", project)
+  await run("context-plan.ts", project, "fix parser tests")
+
+  const ledger = await fs.readFile(path.join(project, ".orca-memory", "cache", "execution-ledger.md"), "utf8")
+  assert.equal(section(ledger, "Current Goal").includes("fix parser tests"), true)
+})
+
+test("repeated reads update the ledger digest and create backtrack candidates", async () => {
+  const project = await createProject({
+    "README.md": "# Demo\n",
+    "src/parser.ts": "export const parser = true\n",
+  })
+
+  await run("memory-index.ts", "init", project)
+  await run("capture-tool-trace.ts", project, "read", "src/parser.ts", "success", "Parser v1")
+  await fs.writeFile(path.join(project, "src", "parser.ts"), "export const parser = 'v2'\n")
+  await run("capture-tool-trace.ts", project, "read", "src/parser.ts", "success", "Parser v2")
+  const plan = JSON.parse((await run("context-plan.ts", project, "fix parser tests")).stdout)
+
+  const traces = (await fs.readFile(path.join(project, ".orca-memory", "traces", "session-default.jsonl"), "utf8"))
+    .trim()
+    .split("\n")
+    .map((line) => JSON.parse(line))
+  assert.notEqual(traces[0].input_digest, traces[1].input_digest)
+
+  const ledger = await fs.readFile(path.join(project, ".orca-memory", "cache", "execution-ledger.md"), "utf8")
+  assert.equal((section(ledger, "Files Already Read").match(/src\/parser\.ts/g) || []).length, 1)
+  assert.equal(section(ledger, "Files Already Read").includes("Parser v2"), true)
+  assert.equal(plan.snapshot.backtrack_candidates.some((candidate) => candidate.summary.includes("Parser v1")), true)
+  assert.equal(plan.snapshot.backtrack_candidates.some((candidate) => candidate.summary.includes("Parser v2")), true)
+})
+
+test("runtime traces are separated by session and mirrored to compatibility cache", async () => {
+  const project = await createProject({
+    "README.md": "# Demo\n",
+    "src/parser.ts": "export const parser = true\n",
+  })
+
+  await runtime.initMemory(project)
+  await runtime.captureToolTrace(project, "read", "src/parser.ts", "success", "Parser alpha", { sessionId: "session-alpha" })
+  await runtime.captureToolTrace(project, "read", "README.md", "success", "Readme beta", { sessionId: "session-beta" })
+
+  assert.equal(await exists(path.join(project, ".orca-memory", "traces", "session-alpha.jsonl")), true)
+  assert.equal(await exists(path.join(project, ".orca-memory", "traces", "session-beta.jsonl")), true)
+  const cacheMirror = await fs.readFile(path.join(project, ".orca-memory", "cache", "tool-trace.jsonl"), "utf8")
+  assert.equal(cacheMirror.includes("Parser alpha"), true)
+  assert.equal(cacheMirror.includes("Readme beta"), true)
 })
 
 test("memory-index init preserves existing runtime records", async () => {
@@ -119,6 +276,123 @@ test("build-context-state summarizes index, trace, and ledger state", async () =
   })
 })
 
+test("graph build and visual export create readable timeline artifacts", async () => {
+  assert.equal(typeof runtime.buildGraphData, "function")
+  assert.equal(typeof runtime.exportVisual, "function")
+
+  const project = await createProject({
+    "README.md": "# Demo\n\nA parser project.",
+    "src/parser.ts": "export function parse(input: string) { return input.trim() }\n",
+  })
+
+  await run("memory-index.ts", "init", project)
+  await run("capture-tool-trace.ts", project, "read", "src/parser.ts", "success", "Parser core")
+  await run("context-plan.ts", project, "fix parser tests")
+  const graph = await runtime.buildGraphData(project)
+  await runtime.exportVisual(project)
+
+  assert.equal(graph.nodes.length > 0, true)
+  assert.equal(graph.edges.some((edge) => edge.type === "selected_for_goal"), true)
+  assert.equal(graph.timeline.length > 0, true)
+
+  const visual = await fs.readFile(path.join(project, ".orca-memory", "visual", "index.html"), "utf8")
+  assert.equal(visual.includes("Turn Timeline"), true)
+  assert.equal(visual.includes("Path Graph"), true)
+  assert.equal(visual.includes("Node Detail"), true)
+
+  const visualGraph = JSON.parse(await fs.readFile(path.join(project, ".orca-memory", "visual", "graph-data.json"), "utf8"))
+  assert.equal(visualGraph.nodes.length, graph.nodes.length)
+})
+
+test("graph data contains every selected path node and selected_for_goal edge", async () => {
+  const project = await createProject({
+    "README.md": "# Demo\n\nA parser project.",
+    "src/parser.ts": "export function parse(input: string) { return input.trim() }\n",
+    "src/render.ts": "export function render(input: string) { return input }\n",
+  })
+
+  await run("memory-index.ts", "init", project)
+  const plan = JSON.parse((await run("context-plan.ts", project, "fix parser tests")).stdout)
+  const graph = await runtime.buildGraphData(project)
+  const nodeIds = new Set(graph.nodes.map((node) => node.id))
+  const selectedIds = plan.snapshot.selected_path.map((node) => node.id)
+
+  assert.equal(selectedIds.every((id) => nodeIds.has(id)), true)
+  assert.equal(
+    selectedIds.every((id) =>
+      graph.edges.some((edge) => edge.from === plan.snapshot.goal.id && edge.to === id && edge.type === "selected_for_goal"),
+    ),
+    true,
+  )
+})
+
+test("successive snapshots report added removed and kept node ids", async () => {
+  const project = await createProject({
+    "README.md": "# Demo\n\nA parser project.",
+    "src/parser.ts": "export function parse(input: string) { return input.trim() }\n",
+    "src/render.ts": "export function render(input: string) { return input }\n",
+  })
+
+  await run("memory-index.ts", "init", project)
+  const first = JSON.parse((await run("context-plan.ts", project, "fix parser tests")).stdout).snapshot
+  const second = JSON.parse((await run("context-plan.ts", project, "fix render tests")).stdout).snapshot
+
+  assert.equal(second.diff_from_previous_turn.kept.includes("memory/profile"), true)
+  assert.equal(second.diff_from_previous_turn.added.length > 0, true)
+  assert.equal(second.diff_from_previous_turn.removed.length > 0, true)
+  assert.notEqual(first.turn_id, second.turn_id)
+})
+
+test("visual export includes polling and renders diff/detail regions", async () => {
+  const project = await createProject({
+    "README.md": "# Demo\n",
+    "src/parser.ts": "export const parser = true\n",
+  })
+
+  await run("memory-index.ts", "init", project)
+  await run("context-plan.ts", project, "fix parser tests")
+  await runtime.exportVisual(project)
+
+  const visual = await fs.readFile(path.join(project, ".orca-memory", "visual", "index.html"), "utf8")
+  assert.equal(visual.includes("setInterval(loadGraph, 1500)"), true)
+  assert.equal(visual.includes("Added nodes"), true)
+  assert.equal(visual.includes("Removed nodes"), true)
+  assert.equal(visual.includes("Kept nodes"), true)
+  assert.equal(visual.includes("../paths/latest.json"), true)
+})
+
+test("gomr CLI exposes v0.2 init, trace, plan, graph, and visual commands", async () => {
+  const project = await createProject({
+    "README.md": "# Demo\n\nA parser project.",
+    "src/parser.ts": "export function parse(input: string) { return input.trim() }\n",
+  })
+
+  await run("gomr.ts", "init", project)
+  await run("gomr.ts", "trace", "append", project, "--tool", "read", "--target", "src/parser.ts", "--status", "success", "--summary", "Parser core")
+  const plan = JSON.parse((await run("gomr.ts", "plan", project, "--goal", "fix parser tests")).stdout)
+  await run("gomr.ts", "graph", "build", project)
+  await run("gomr.ts", "visual", "export", project)
+
+  assert.equal(plan.goal, "fix parser tests")
+  assert.equal(await exists(path.join(project, ".orca-memory", "traces", "session-default.jsonl")), true)
+  assert.equal(await exists(path.join(project, ".orca-memory", "graph", "graph-data.json")), true)
+  assert.equal(await exists(path.join(project, ".orca-memory", "visual", "index.html")), true)
+})
+
+test("gomr CLI snapshot returns the generated turn snapshot", async () => {
+  const project = await createProject({
+    "README.md": "# Demo\n",
+    "src/parser.ts": "export const parser = true\n",
+  })
+
+  await run("gomr.ts", "init", project)
+  const snapshot = JSON.parse((await run("gomr.ts", "snapshot", project, "--goal", "fix parser tests")).stdout)
+
+  assert.equal(snapshot.goal.summary, "fix parser tests")
+  assert.equal(snapshot.selected_path.every((node) => node.title && node.summary), true)
+  assert.equal(await exists(path.join(project, ".orca-memory", "paths", `${snapshot.turn_id}.json`)), true)
+})
+
 test("plugin injects a context plan into system context", async () => {
   const project = await createProject({
     "README.md": "# Demo\n",
@@ -152,6 +426,8 @@ test("plugin records tool traces after tool execution", async () => {
     ),
     true,
   )
+  assert.equal(await exists(path.join(project, ".orca-memory", "traces", "session-1.jsonl")), true)
+  assert.equal(await exists(path.join(project, ".orca-memory", "paths", "latest.json")), true)
 })
 
 test("plugin injects execution ledger context during compaction", async () => {
@@ -225,6 +501,13 @@ async function run(script: string, ...args: string[]) {
 
 function pick(record: Record<string, unknown>, keys: string[]) {
   return Object.fromEntries(keys.map((key) => [key, record[key]]))
+}
+
+function section(markdown: string, heading: string) {
+  const start = markdown.indexOf(`## ${heading}`)
+  if (start === -1) return ""
+  const next = markdown.indexOf("\n## ", start + 1)
+  return markdown.slice(start, next === -1 ? markdown.length : next)
 }
 
 async function pluginHooks(project: string) {
