@@ -155,6 +155,8 @@ test("capture-tool-trace persists v0.2 session traces with digests and ledger ta
   assert.equal(trace.summary, "Parser core")
   assert.match(trace.input_digest, /^sha256:/)
   assert.match(trace.output_digest, /^sha256:/)
+  assert.equal(typeof trace.output_length, "number")
+  assert.equal(typeof trace.output_token_estimate, "number")
   assert.equal(trace.context_relevance.reason.includes("current goal"), true)
 
   const ledger = await fs.readFile(path.join(project, ".orca-memory", "cache", "execution-ledger.md"), "utf8")
@@ -330,10 +332,84 @@ test("visual export builds expanded turn, node, edge, and context block data", a
     assert.equal(turn.path.length > 0, true)
     assert.equal(typeof turn.rawContextTokens, "number")
     assert.equal(typeof turn.rebuiltContextTokens, "number")
-    assert.equal(turn.rawContextTokens >= turn.rebuiltContextTokens, true)
+    assert.equal(turn.rawContextTokens > 0, true)
+    assert.equal(turn.rebuiltContextTokens > 0, true)
     assert.equal(turn.contextBlocks.some((block) => block.usedInRebuiltContext), true)
     assert.equal(turn.contextBlocks.some((block) => !block.usedInRebuiltContext), true)
   }
+})
+
+test("raw context token estimate scales with captured tool output, not indexed file size alone", async () => {
+  const project = await createProject({
+    "README.md": "# Demo\n\nSmall project.",
+    "src/parser.ts": "export function parse(input: string) { return input.trim() }\n",
+  })
+
+  await runtime.initMemory(project)
+  await runtime.captureToolTrace(project, "read", "src/parser.ts", "success", "small read", { output: "small output" })
+  await runtime.contextPlan(project, "inspect parser context")
+  await runtime.exportVisual(project)
+  const smallRaw = JSON.parse(await fs.readFile(path.join(project, ".orca-memory", "visual", "graph-data.json"), "utf8")).turns.at(-1).rawContextTokens
+
+  await fs.writeFile(path.join(project, "README.md"), `# Demo\n\n${"large context ".repeat(5000)}\n`, "utf8")
+  await runtime.initMemory(project)
+  await runtime.captureToolTrace(project, "read", "src/parser.ts", "success", "large read", { output: "large output ".repeat(5000) })
+  await runtime.contextPlan(project, "inspect parser context")
+  await runtime.exportVisual(project)
+  const largeRaw = JSON.parse(await fs.readFile(path.join(project, ".orca-memory", "visual", "graph-data.json"), "utf8")).turns.at(-1).rawContextTokens
+
+  assert.equal(largeRaw > smallRaw + 10000, true)
+})
+
+test("rebuilt context token estimate comes from the persisted context plan text length", async () => {
+  const project = await createProject({
+    "README.md": "# Demo\n\nA parser project.",
+    "src/parser.ts": "export function parse(input: string) { return input.trim() }\n",
+  })
+
+  await runtime.initMemory(project)
+  await runtime.contextPlan(project, "inspect parser context")
+  await runtime.exportVisual(project)
+
+  const snapshot = JSON.parse(await fs.readFile(path.join(project, ".orca-memory", "paths", "latest.json"), "utf8"))
+  const visualData = JSON.parse(await fs.readFile(path.join(project, ".orca-memory", "visual", "graph-data.json"), "utf8"))
+
+  assert.equal(typeof snapshot.context_plan_text_length, "number")
+  assert.equal(visualData.turns.at(-1).rebuiltContextTokens, Math.ceil(snapshot.context_plan_text_length / 3.5))
+})
+
+test("telemetry import maps observed prompt tokens onto visual rebuilt token counts", async () => {
+  const project = await createProject({
+    "README.md": "# Demo\n\nA parser project.",
+    "src/parser.ts": "export function parse(input: string) { return input.trim() }\n",
+  })
+  const traceDir = await fs.mkdtemp(path.join(os.tmpdir(), "gomr-trace-"))
+  tempProjects.push(traceDir)
+
+  await runtime.initMemory(project)
+  await runtime.contextPlan(project, "inspect parser context", { sessionId: "ses_TELEMETRY123" })
+  await rewriteSnapshotTimes(project, "turn-0001", "2026-06-08T10:00:00.000Z")
+  await fs.writeFile(
+    path.join(traceDir, "parser context.html"),
+    [
+      "<!DOCTYPE html><html></html>",
+      "<!--",
+      JSON.stringify({ _id: 1, _kind: "request", _purpose: "", _ts: "2026-06-08T10:00:01.000Z", messages: [{ role: "user", content: "inspect" }] }),
+      JSON.stringify({ _id: 1, _kind: "response", _purpose: "", _ts: "2026-06-08T09:59:59.700Z", "*usage": { "*prompt_tokens": 32123, "*total_tokens": 32200 } }),
+    ].join("\n"),
+    "utf8",
+  )
+
+  await runtime.importOpenCodeTelemetry(project, { traceDir })
+  await runtime.exportVisual(project)
+
+  const visualData = JSON.parse(await fs.readFile(path.join(project, ".orca-memory", "visual", "graph-data.json"), "utf8"))
+  const latestTurn = visualData.turns.at(-1)
+  assert.equal(latestTurn.observedPromptTokens, 32123)
+  assert.equal(latestTurn.rebuiltContextTokens, 32123)
+  assert.equal(latestTurn.rebuiltTokenSource, "telemetry")
+  assert.equal(latestTurn.gomrContextTokens > 0, true)
+  assert.notEqual(latestTurn.gomrContextTokens, latestTurn.observedPromptTokens)
 })
 
 test("visual export uses imported OpenCode session titles for generic turn goals", async () => {
@@ -504,7 +580,7 @@ test("successive snapshots report added removed and kept node ids", async () => 
   assert.notEqual(first.turn_id, second.turn_id)
 })
 
-test("visual export includes polling and renders diff/detail regions", async () => {
+test("visual export includes polling and renders detail regions", async () => {
   const project = await createProject({
     "README.md": "# Demo\n",
     "src/parser.ts": "export const parser = true\n",
@@ -516,9 +592,7 @@ test("visual export includes polling and renders diff/detail regions", async () 
 
   const visual = await fs.readFile(path.join(project, ".orca-memory", "visual", "index.html"), "utf8")
   assert.equal(visual.includes("setInterval(loadGraph, 1500)"), true)
-  assert.equal(visual.includes("Added nodes"), true)
-  assert.equal(visual.includes("Removed nodes"), true)
-  assert.equal(visual.includes("Kept nodes"), true)
+  assert.equal(visual.includes("Node Detail"), true)
   assert.equal(visual.includes("../paths/latest.json"), true)
 })
 
@@ -554,7 +628,7 @@ test("gomr CLI snapshot returns the generated turn snapshot", async () => {
   assert.equal(await exists(path.join(project, ".orca-memory", "paths", `${snapshot.turn_id}.json`)), true)
 })
 
-test("plugin injects a context plan into system context", async () => {
+test("plugin observes and records context plans without injecting system context by default", async () => {
   const project = await createProject({
     "README.md": "# Demo\n",
     "src/parser.ts": "export const parser = true\n",
@@ -565,11 +639,42 @@ test("plugin injects a context plan into system context", async () => {
   await hooks["experimental.chat.system.transform"]({ sessionID: "session-1", model: {} }, output)
 
   assert.equal(await exists(path.join(project, ".orca-memory", "index.json")), true)
-  assert.equal(output.system.some((entry) => entry.includes("Goal-Oriented Memory Runtime")), true)
-  assert.equal(output.system.some((entry) => entry.includes("context-plan")), true)
+  assert.equal(await exists(path.join(project, ".orca-memory", "paths", "latest.json")), true)
+  assert.equal(output.system.length, 0)
 })
 
-test("plugin uses the latest user message as the context plan goal", async () => {
+test("plugin exports an OpenCode server module", async () => {
+  const mod = await import("../plugins/gomr.ts")
+
+  assert.equal(mod.id, "gomr")
+  assert.equal(mod.default.id, "gomr")
+  assert.equal(typeof mod.server, "function")
+  assert.equal(typeof mod.default.server, "function")
+})
+
+test("plugin injects a context plan only when GOMR_MODE is inject", async () => {
+  const project = await createProject({
+    "README.md": "# Demo\n",
+    "src/parser.ts": "export const parser = true\n",
+  })
+  const previous = process.env.GOMR_MODE
+  process.env.GOMR_MODE = "inject"
+  try {
+    const hooks = await pluginHooks(project)
+    const output = { system: [] as string[] }
+
+    await hooks["experimental.chat.system.transform"]({ sessionID: "session-1", model: {} }, output)
+
+    assert.equal(await exists(path.join(project, ".orca-memory", "index.json")), true)
+    assert.equal(output.system.some((entry) => entry.includes("Goal-Oriented Memory Runtime")), true)
+    assert.equal(output.system.some((entry) => entry.includes("context-plan")), true)
+  } finally {
+    if (previous === undefined) delete process.env.GOMR_MODE
+    else process.env.GOMR_MODE = previous
+  }
+})
+
+test("plugin uses the latest user message as the context plan goal without injecting by default", async () => {
   const project = await createProject({
     "README.md": "# Demo\n",
     "src/parser.ts": "export const parser = true\n",
@@ -592,7 +697,40 @@ test("plugin uses the latest user message as the context plan goal", async () =>
 
   const latest = JSON.parse(await fs.readFile(path.join(project, ".orca-memory", "paths", "latest.json"), "utf8"))
   assert.equal(latest.goal.summary, "Add real goal titles to the GOMR visualization")
-  assert.equal(output.system.some((entry) => entry.includes("Add real goal titles to the GOMR visualization")), true)
+  assert.equal(output.system.length, 0)
+})
+
+test("plugin includes the latest user goal in injected context when GOMR_MODE is inject", async () => {
+  const project = await createProject({
+    "README.md": "# Demo\n",
+    "src/parser.ts": "export const parser = true\n",
+  })
+  const previous = process.env.GOMR_MODE
+  process.env.GOMR_MODE = "inject"
+  try {
+    const hooks = await pluginHooks(project)
+    const output = { system: [] as string[] }
+
+    await hooks["experimental.chat.system.transform"](
+      {
+        sessionID: "session-1",
+        model: {},
+        messages: [
+          { role: "user", content: "Improve PageIndex retrieval summaries" },
+          { role: "assistant", content: "I'll inspect the repo." },
+          { role: "user", content: "Add real goal titles to the GOMR visualization" },
+        ],
+      },
+      output,
+    )
+
+    const latest = JSON.parse(await fs.readFile(path.join(project, ".orca-memory", "paths", "latest.json"), "utf8"))
+    assert.equal(latest.goal.summary, "Add real goal titles to the GOMR visualization")
+    assert.equal(output.system.some((entry) => entry.includes("Add real goal titles to the GOMR visualization")), true)
+  } finally {
+    if (previous === undefined) delete process.env.GOMR_MODE
+    else process.env.GOMR_MODE = previous
+  }
 })
 
 test("plugin preserves the recorded goal when refreshing snapshots after tools", async () => {
@@ -643,7 +781,7 @@ test("plugin records tool traces after tool execution", async () => {
   assert.equal(await exists(path.join(project, ".orca-memory", "paths", "latest.json")), true)
 })
 
-test("plugin injects execution ledger context during compaction", async () => {
+test("plugin does not inject execution ledger context during compaction by default", async () => {
   const project = await createProject({
     "README.md": "# Demo\n",
     "src/parser.ts": "export const parser = true\n",
@@ -657,8 +795,172 @@ test("plugin injects execution ledger context during compaction", async () => {
   )
   await hooks["experimental.session.compacting"]({ sessionID: "session-1" }, output)
 
-  assert.equal(output.context.some((entry) => entry.includes("GOMR Execution Ledger")), true)
-  assert.equal(output.context.some((entry) => entry.includes("src/parser.ts")), true)
+  assert.equal(output.context.length, 0)
+})
+
+test("plugin injects execution ledger context during compaction only when GOMR_MODE is inject", async () => {
+  const project = await createProject({
+    "README.md": "# Demo\n",
+    "src/parser.ts": "export const parser = true\n",
+  })
+  const previous = process.env.GOMR_MODE
+  process.env.GOMR_MODE = "inject"
+  try {
+    const hooks = await pluginHooks(project)
+    const output = { context: [] as string[] }
+
+    await hooks["tool.execute.after"](
+      { tool: "read", sessionID: "session-1", callID: "call-1", args: { filePath: "src/parser.ts" } },
+      { title: "Read src/parser.ts", output: "Parser core", metadata: {} },
+    )
+    await hooks["experimental.session.compacting"]({ sessionID: "session-1" }, output)
+
+    assert.equal(output.context.some((entry) => entry.includes("GOMR Execution Ledger")), true)
+    assert.equal(output.context.some((entry) => entry.includes("src/parser.ts")), true)
+  } finally {
+    if (previous === undefined) delete process.env.GOMR_MODE
+    else process.env.GOMR_MODE = previous
+  }
+})
+
+test("plugin replacement mode rewrites provider messages to GOMR context plus latest user", async () => {
+  const project = await createProject({
+    "README.md": "# Demo\n",
+    "src/parser.ts": "export const parser = true\n",
+  })
+  const mod = await import("../plugins/gomr.ts")
+  await runtime.initMemory(project)
+  await runtime.contextPlan(project, "fix parser tests", { sessionId: "session-1" })
+
+  const request = {
+    model: "deepseek-v4-pro",
+    messages: [
+      { role: "system", content: "OpenCode core system prompt" },
+      { role: "user", content: "Old request that should be replaced" },
+      { role: "assistant", content: "Old assistant answer that should be replaced" },
+      { role: "tool", content: "Large old tool output that should be replaced" },
+      { role: "user", content: "Current user request" },
+    ],
+    tools: [{ type: "function", function: { name: "read" } }],
+  }
+
+  const rewritten = await mod.rewriteOpenCodeRequestForGomr(project, request)
+
+  assert.equal(rewritten.tools, request.tools)
+  assert.deepEqual(
+    rewritten.messages.map((message) => message.role),
+    ["system", "system", "user"],
+  )
+  assert.equal(rewritten.messages[0].content, "OpenCode core system prompt")
+  assert.equal(rewritten.messages[1].content.includes("Goal-Oriented Memory Runtime"), true)
+  assert.equal(rewritten.messages[1].content.includes("Current user request"), true)
+  assert.equal(rewritten.messages.at(-1).content, "Current user request")
+  assert.equal(JSON.stringify(rewritten).includes("Large old tool output"), false)
+})
+
+test("plugin replacement mode refreshes the context plan from the provider request goal", async () => {
+  const project = await createProject({
+    "README.md": "# Demo\n",
+    "src/parser.ts": "export const parser = true\n",
+  })
+  const mod = await import("../plugins/gomr.ts")
+  await runtime.initMemory(project)
+
+  await mod.rewriteOpenCodeRequestForGomr(project, {
+    model: "deepseek-v4-pro",
+    messages: [
+      { role: "system", content: "OpenCode core system prompt" },
+      { role: "user", content: "Inspect README and summarize the project" },
+    ],
+    tools: [{ type: "function", function: { name: "read" } }],
+  })
+
+  const plan = await runtime.readCurrentPlan(project)
+
+  assert.equal(plan.goal, "Inspect README and summarize the project")
+})
+
+test("plugin does not let the bootstrap goal override a provider request goal after tools", async () => {
+  const project = await createProject({
+    "README.md": "# Demo\n",
+    "src/parser.ts": "export const parser = true\n",
+  })
+  const hooks = await pluginHooks(project)
+  const mod = await import("../plugins/gomr.ts")
+
+  await hooks["experimental.chat.system.transform"]({ sessionID: "session-1", model: {} }, { system: [] as string[] })
+  await mod.rewriteOpenCodeRequestForGomr(
+    project,
+    {
+      model: "deepseek-v4-pro",
+      messages: [
+        { role: "system", content: "OpenCode core system prompt" },
+        { role: "user", content: "Inspect README and summarize the project" },
+      ],
+      tools: [{ type: "function", function: { name: "read" } }],
+    },
+    { sessionId: "session-1" },
+  )
+  await hooks["tool.execute.after"](
+    { sessionID: "session-1", tool: "read", args: { filePath: "README.md" } },
+    { title: "Read README.md", output: "# Demo\n" },
+  )
+
+  const plan = await runtime.readCurrentPlan(project)
+
+  assert.equal(plan.goal, "Inspect README and summarize the project")
+})
+
+test("plugin replacement mode preserves the active turn after the latest user message", async () => {
+  const project = await createProject({
+    "README.md": "# Demo\n",
+    "src/parser.ts": "export const parser = true\n",
+  })
+  const mod = await import("../plugins/gomr.ts")
+  await runtime.initMemory(project)
+  await runtime.contextPlan(project, "inspect graph data", { sessionId: "session-1" })
+
+  const request = {
+    model: "deepseek-v4-pro",
+    messages: [
+      { role: "system", content: "OpenCode core system prompt" },
+      { role: "user", content: "Old request that should be replaced" },
+      { role: "assistant", content: "Old assistant answer that should be replaced" },
+      { role: "tool", content: "Old tool output that should be replaced" },
+      { role: "user", content: "Current user request" },
+      { role: "assistant", content: [{ type: "tool-call", toolName: "read" }] },
+      { role: "tool", content: "Current read failed: file not found" },
+    ],
+    tools: [{ type: "function", function: { name: "read" } }],
+  }
+
+  const rewritten = await mod.rewriteOpenCodeRequestForGomr(project, request)
+
+  assert.deepEqual(
+    rewritten.messages.map((message) => message.role),
+    ["system", "system", "user", "assistant", "tool"],
+  )
+  assert.equal(JSON.stringify(rewritten).includes("Old tool output"), false)
+  assert.equal(JSON.stringify(rewritten).includes("Current read failed: file not found"), true)
+})
+
+test("plugin replacement mode leaves meta requests without tools unchanged", async () => {
+  const project = await createProject({
+    "README.md": "# Demo\n",
+    "src/parser.ts": "export const parser = true\n",
+  })
+  const mod = await import("../plugins/gomr.ts")
+  const request = {
+    model: "deepseek-v4-pro",
+    messages: [
+      { role: "system", content: "You are a title generator." },
+      { role: "user", content: "Generate title" },
+    ],
+  }
+
+  const rewritten = await mod.rewriteOpenCodeRequestForGomr(project, request)
+
+  assert.equal(rewritten, request)
 })
 
 test("agent, skill, and root protocol describe GOMR guardrails", async () => {
@@ -710,6 +1012,15 @@ async function exists(file: string) {
 
 async function run(script: string, ...args: string[]) {
   return exec(process.execPath, [path.join(import.meta.dirname, script), ...args], { cwd: import.meta.dirname })
+}
+
+async function rewriteSnapshotTimes(project: string, turnId: string, createdAt: string) {
+  for (const name of [`${turnId}.json`, "latest.json"]) {
+    const file = path.join(project, ".orca-memory", "paths", name)
+    const snapshot = JSON.parse(await fs.readFile(file, "utf8"))
+    snapshot.created_at = createdAt
+    await fs.writeFile(file, JSON.stringify(snapshot, null, 2), "utf8")
+  }
 }
 
 function pick(record: Record<string, unknown>, keys: string[]) {
