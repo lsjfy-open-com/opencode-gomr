@@ -10,22 +10,39 @@ import {
   readCurrentPlan,
 } from "../gomr/runtime.ts"
 
+export const id = "gomr"
+
+const sessionProjects = new Map()
+const sessionGoalsById = new Map()
+let originalFetch
+
 export const GomrPlugin = async ({ directory, worktree }) => {
   const project = directory || worktree
   const sessionGoals = new Map()
+  installGomrReplacementFetch(project)
   return {
     "experimental.chat.system.transform": async (input, output) => {
       await initMemory(project)
       const userGoal = goalFromInput(input)
       const goal = userGoal || (await readCurrentGoal(project)) || "current OpenCode task"
-      if (input?.sessionID) sessionGoals.set(input.sessionID, goal)
+      if (input?.sessionID && userGoal) {
+        sessionGoals.set(input.sessionID, userGoal)
+        sessionGoalsById.set(input.sessionID, userGoal)
+      }
+      if (input?.sessionID) sessionProjects.set(input.sessionID, project)
       const plan = userGoal
         ? await contextPlan(project, goal, { sessionId: input?.sessionID })
         : await readCurrentPlan(project)
       if (gomrMode() === "inject") output.system.push(gomrSystemContextText(plan))
     },
     "tool.execute.after": async (input, output) => {
-      const goal = sessionGoals.get(input.sessionID) || (await readCurrentGoal(project)) || goalFromInput(input) || "current OpenCode task"
+      if (input?.sessionID) sessionProjects.set(input.sessionID, project)
+      const goal =
+        sessionGoals.get(input.sessionID) ||
+        sessionGoalsById.get(input.sessionID) ||
+        (await readCurrentGoal(project)) ||
+        goalFromInput(input) ||
+        "current OpenCode task"
       await captureToolTrace(
         project,
         input.tool,
@@ -44,7 +61,82 @@ export const GomrPlugin = async ({ directory, worktree }) => {
   }
 }
 
-export default GomrPlugin
+export const server = GomrPlugin
+
+export default { id, server: GomrPlugin }
+
+export async function rewriteOpenCodeRequestForGomr(project, body, options = {}) {
+  if (gomrMode() !== "replace") return body
+  if (!body || typeof body !== "object" || !Array.isArray(body.messages)) return body
+  if (!Array.isArray(body.tools) || body.tools.length === 0) return body
+
+  const activeTurnMessages = activeTurnMessageSuffix(body.messages)
+  if (activeTurnMessages.length === 0) return body
+
+  const requestGoal = cleanGoal(contentText(activeTurnMessages[0]?.content || activeTurnMessages[0]?.text || activeTurnMessages[0]))
+  if (requestGoal && options?.sessionId) sessionGoalsById.set(options.sessionId, requestGoal)
+  const plan = requestGoal
+    ? await contextPlan(project, requestGoal, { sessionId: options?.sessionId })
+    : await readCurrentPlan(project)
+  const gomrContext = gomrSystemContextText(plan)
+  const systemMessages = body.messages.filter((message) => {
+    if (message?.role !== "system") return false
+    return !contentText(message.content)?.includes("Goal-Oriented Memory Runtime")
+  })
+
+  return {
+    ...body,
+    messages: [
+      ...systemMessages,
+      {
+        role: "system",
+        content: gomrContext,
+      },
+      ...activeTurnMessages,
+    ],
+  }
+}
+
+function installGomrReplacementFetch(project) {
+  if (originalFetch || typeof globalThis.fetch !== "function") return
+  originalFetch = globalThis.fetch.bind(globalThis)
+  globalThis.fetch = async (input, init) => {
+    if (gomrMode() !== "replace") return originalFetch(input, init)
+    let request
+    try {
+      request = new Request(input, init)
+    } catch {
+      return originalFetch(input, init)
+    }
+    const method = String(request.method || "GET").toUpperCase()
+    if (method === "GET" || method === "HEAD") return originalFetch(request)
+
+    const contentType = request.headers.get("content-type") || ""
+    if (!contentType.includes("json")) return originalFetch(request)
+
+    let body
+    try {
+      body = JSON.parse(await request.clone().text())
+    } catch {
+      return originalFetch(request)
+    }
+
+    const sessionId = request.headers.get("x-opencode-session") || request.headers.get("x-session-affinity") || body?.sessionID || body?.session_id
+    const requestProject = sessionProjects.get(sessionId) || project
+    const rewritten = await rewriteOpenCodeRequestForGomr(requestProject, body, { sessionId })
+    if (rewritten === body) return originalFetch(request)
+
+    const headers = new Headers(request.headers)
+    headers.set("content-type", "application/json")
+    headers.delete("content-length")
+    return originalFetch(
+      new Request(request, {
+        headers,
+        body: JSON.stringify(rewritten),
+      }),
+    )
+  }
+}
 
 function normalizeTarget(args) {
   if (typeof args?.filePath === "string") return args.filePath
@@ -76,6 +168,16 @@ function latestUserMessage(messages) {
   return undefined
 }
 
+function activeTurnMessageSuffix(messages) {
+  if (!Array.isArray(messages)) return []
+  for (let index = messages.length - 1; index >= 0; index--) {
+    const message = messages[index]
+    if (message?.role !== "user") continue
+    if (contentText(message?.content || message?.text || message)) return messages.slice(index)
+  }
+  return []
+}
+
 function contentText(value) {
   if (typeof value === "string") return value
   if (Array.isArray(value)) return value.map(contentText).filter(Boolean).join("\n")
@@ -92,6 +194,8 @@ function cleanGoal(value) {
 }
 
 function gomrMode() {
-  const mode = String(process.env.GOMR_MODE || "observe").toLowerCase()
-  return mode === "inject" ? "inject" : "observe"
+  const mode = String(process.env.GOMR_MODE || "replace").toLowerCase()
+  if (mode === "inject") return "inject"
+  if (mode === "observe") return "observe"
+  return "replace"
 }

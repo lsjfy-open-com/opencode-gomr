@@ -1,6 +1,6 @@
 # OpenCode GOMR
 
-Goal-Oriented Memory Runtime (GOMR) is a project-level OpenCode extension for preserving agent state without full-context reloads. It creates a local `.orca-memory` store, builds goal-oriented context plans, captures tool traces, and exports visual/telemetry evidence. By default it observes and records only; it does not add GOMR text to OpenCode prompts.
+Goal-Oriented Memory Runtime (GOMR) is a project-level OpenCode extension for preserving agent state without full-context reloads. It creates a local `.orca-memory` store, builds goal-oriented context plans, captures tool traces, and exports visual/telemetry evidence. By default it replaces accumulated provider message history with a compact GOMR rebuilt context plus the latest user request, so goal-relevant state is preserved without carrying the full raw conversation forward.
 
 GOMR is intentionally not a vector database, embedding pipeline, GraphRAG system, or automatic memory-evolution engine. The MVP focuses on deterministic state continuity for coding agents.
 
@@ -38,8 +38,9 @@ Goal
 - Context-state snapshot generation
 - Expanded visual export with turn timeline, graph view, tree view, compare view, node detail, auto-play, and latest-turn polling
 - OpenCode plugin hooks for:
-  - observe-only context planning by default
+  - pre-send provider request replacement by default
   - tool trace capture
+  - observe-only mode with `GOMR_MODE=observe`
   - optional experimental injection with `GOMR_MODE=inject`
 - `context-router` OpenCode agent
 - `context-path-builder` OpenCode skill
@@ -232,8 +233,8 @@ node --no-warnings --test .opencode/gomr/gomr.test.ts
 Expected result:
 
 ```text
-tests 37
-pass 37
+tests 43
+pass 43
 fail 0
 ```
 
@@ -271,11 +272,11 @@ The UI is a context path explainer rather than a telemetry dashboard. It shows:
 - Compare View showing raw accumulated history vs GOMR rebuilt context
 - Node Detail with trace metadata, digests, evidence path, relations, and anchor reuse
 
-Token counts are estimates over measurable text, not project size. Raw context uses captured tool output lengths plus local trace/ledger/path evidence that would otherwise accumulate. In the default observe mode, GOMR does not reduce the live OpenCode prompt; `gomrContextTokens` is only the theoretical context-plan size.
+Token counts are estimates over measurable text, not project size. Raw context uses captured tool output lengths plus local trace/ledger/path evidence that would otherwise accumulate. In the default `replace` mode, GOMR rewrites provider chat requests that include tools: original system prompts and tool schemas are preserved, prior user/assistant/tool history is removed, and the rebuilt GOMR context plus the latest user message are sent instead.
 
-When `@ljw1004/opencode-trace` is installed, `telemetry import` reads `~/opencode-trace` and imports provider-reported prompt usage. Visual `rebuiltContextTokens` then prefers observed prompt tokens from telemetry, while `gomrContextTokens` keeps the smaller theoretical GOMR context-plan injection size for comparison.
+When `@ljw1004/opencode-trace` is installed, `telemetry import` reads `~/opencode-trace` and imports provider-reported prompt usage. Visual `rebuiltContextTokens` then prefers observed prompt tokens from telemetry, while `gomrContextTokens` keeps the smaller GOMR context-plan text size for comparison.
 
-`GOMR_MODE=inject` is available only as an explicit experiment. It adds the GOMR context-plan to OpenCode system context and can increase prompt size unless a separate pre-send replacement/pruning layer is implemented.
+`GOMR_MODE=observe` records context plans and traces without changing provider requests. `GOMR_MODE=inject` is available only as an explicit experiment; it adds the GOMR context-plan to OpenCode system context and can increase prompt size.
 
 Build a context plan:
 
@@ -333,6 +334,12 @@ The plugin uses OpenCode hooks:
   - initializes `.orca-memory`
   - records the current context plan without injecting it by default
   - injects the GOMR protocol and context plan only when `GOMR_MODE=inject`
+- provider request replacement
+  - wraps OpenCode's server-side fetch once per plugin process
+  - rewrites JSON model requests that include `messages` and `tools`
+  - preserves original system messages, provider tool schemas, and the active turn from the latest user message onward
+  - refreshes the GOMR context plan from the provider request's latest user goal
+  - replaces earlier accumulated user/assistant/tool history with the current GOMR rebuilt context
 - `tool.execute.after`
   - records the tool, target, status, summary, digest, evidence, and relevance reason
   - appends durable JSONL under `.orca-memory/traces/session-<id>.jsonl`
