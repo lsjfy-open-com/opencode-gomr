@@ -233,21 +233,24 @@ node --no-warnings --test .opencode/gomr/gomr.test.ts
 Expected result:
 
 ```text
-tests 43
-pass 43
+tests 48
+pass 48
 fail 0
 ```
 
 ## Commands
 
-Unified v0.2 command wrapper:
+Unified v0.6 command wrapper:
 
 ```bash
 node --no-warnings .opencode/gomr/gomr.ts init .
 node --no-warnings .opencode/gomr/gomr.ts index .
 node --no-warnings .opencode/gomr/gomr.ts trace append . --tool read --target src/parser.ts --status success --summary "Parser core"
 node --no-warnings .opencode/gomr/gomr.ts ledger update .
+node --no-warnings .opencode/gomr/gomr.ts repo build .
+node --no-warnings .opencode/gomr/gomr.ts repo import-graphify . --input graphify-output.json
 node --no-warnings .opencode/gomr/gomr.ts plan . --goal "fix parser tests"
+node --no-warnings .opencode/gomr/gomr.ts context build . --goal "fix-parser-tests"
 node --no-warnings .opencode/gomr/gomr.ts snapshot . --goal "fix parser tests"
 node --no-warnings .opencode/gomr/gomr.ts graph build .
 node --no-warnings .opencode/gomr/gomr.ts sessions import .
@@ -263,16 +266,31 @@ node --no-warnings .opencode/gomr/gomr.ts visual serve . --port 8787
 .orca-memory/visual/graph-data.json
 ```
 
-The UI is a context path explainer rather than a telemetry dashboard. It shows:
+`repo build` writes:
+
+```text
+.orca-memory/graph/static-repo-graph.json
+```
+
+`context build` writes:
+
+```text
+.orca-memory/context/<goal-id>.md
+.orca-memory/context/current.md
+.orca-memory/debug/last-model-context.md
+```
+
+The UI is a Bundle DAG context runtime explainer rather than a force-layout telemetry dashboard. It shows:
 
 - Turn Timeline with raw vs rebuilt context size, reused anchors, and new nodes
 - Real turn goals from the latest user message captured by the OpenCode hook, with imported OpenCode session titles as a fallback when the hook input only exposes a generic task name
-- Graph View that highlights the current turn path inside the global history graph
-- Tree View that expands selected and excluded nodes with reasons and scores
-- Compare View showing raw accumulated history vs GOMR rebuilt context
+- Compact Bundle DAG: Goal -> Context Bundles -> Selected Materials -> Evidence -> Rebuilt Context Output
+- Evidence view that expands selected and excluded nodes with reasons and scores
+- Replacement view showing raw accumulated history vs GOMR rebuilt context
+- Debug Full Graph view for full graph inspection only
 - Node Detail with trace metadata, digests, evidence path, relations, and anchor reuse
 
-Token counts are estimates over measurable text, not project size. Raw context uses captured tool output lengths plus local trace/ledger/path evidence that would otherwise accumulate. In the default `replace` mode, GOMR rewrites provider chat requests that include tools: original system prompts and tool schemas are preserved, prior user/assistant/tool history is removed, and the rebuilt GOMR context plus the latest user message are sent instead.
+Token counts are estimates over measurable text, not project size. Raw context uses captured tool output lengths plus local trace/ledger/path evidence that would otherwise accumulate. In the default `replace` mode, GOMR rewrites provider chat requests that include tools: original system prompts and tool schemas are preserved, prior user/assistant/tool history is removed, and `.orca-memory/context/current.md` rebuilt context plus the active turn from the latest user message onward are sent instead.
 
 When `@ljw1004/opencode-trace` is installed, `telemetry import` reads `~/opencode-trace` and imports provider-reported prompt usage. Visual `rebuiltContextTokens` then prefers observed prompt tokens from telemetry, while `gomrContextTokens` keeps the smaller GOMR context-plan text size for comparison.
 

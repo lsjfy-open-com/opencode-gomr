@@ -1,5 +1,6 @@
 import {
   buildContextState,
+  buildContextForRequestGoal,
   captureToolTrace,
   compactingContext,
   contextPlan,
@@ -75,10 +76,9 @@ export async function rewriteOpenCodeRequestForGomr(project, body, options = {})
 
   const requestGoal = cleanGoal(contentText(activeTurnMessages[0]?.content || activeTurnMessages[0]?.text || activeTurnMessages[0]))
   if (requestGoal && options?.sessionId) sessionGoalsById.set(options.sessionId, requestGoal)
-  const plan = requestGoal
-    ? await contextPlan(project, requestGoal, { sessionId: options?.sessionId })
-    : await readCurrentPlan(project)
-  const gomrContext = gomrSystemContextText(plan)
+  const plan = requestGoal ? await contextPlan(project, requestGoal, { sessionId: options?.sessionId }) : await readCurrentPlan(project)
+  const rebuilt = requestGoal ? await buildContextForRequestGoal(project, requestGoal) : undefined
+  const gomrContext = rebuilt?.content || gomrSystemContextText(plan)
   const systemMessages = body.messages.filter((message) => {
     if (message?.role !== "system") return false
     return !contentText(message.content)?.includes("Goal-Oriented Memory Runtime")
