@@ -5,12 +5,19 @@ import os from "node:os"
 import path from "node:path"
 import { promisify } from "node:util"
 
+import { buildRebuiltContext, buildRebuiltContextForGoal, readCurrentContext } from "./src/context/context-builder.ts"
+import { importGraphify } from "./src/repo-graph/graphify-adapter.ts"
+import { buildStaticRepoGraph } from "./src/repo-graph/static-repo-graph.ts"
+import { readRoutedPlan, routeGoal } from "./src/routing/goal-router.ts"
+
 const memoryRoot = ".orca-memory"
 const cacheRoot = path.join(memoryRoot, "cache")
 const traceRoot = path.join(memoryRoot, "traces")
 const pathsRoot = path.join(memoryRoot, "paths")
 const graphRoot = path.join(memoryRoot, "graph")
 const visualRoot = path.join(memoryRoot, "visual")
+const contextRoot = path.join(memoryRoot, "context")
+const debugRoot = path.join(memoryRoot, "debug")
 const sessionGoalsFile = path.join(cacheRoot, "session-goals.json")
 const telemetryFile = path.join(cacheRoot, "telemetry.json")
 const ignoredDirs = new Set([".git", "node_modules", ".orca-memory", "dist", "build", ".next", ".turbo"])
@@ -116,6 +123,8 @@ export async function initMemory(project: string) {
       graphRoot,
       cacheRoot,
       visualRoot,
+      contextRoot,
+      debugRoot,
       path.join(memoryRoot, "archive"),
     ].map((dir) => fs.mkdir(path.join(project, dir), { recursive: true })),
   )
@@ -204,7 +213,8 @@ export async function contextPlan(project: string, goal: string, options: { sess
     "utf8",
   )
   await buildGraphData(project)
-  return { ...plan, snapshot }
+  const routed = await routeGoal(project, goal)
+  return { ...plan, ...routed, goal, snapshot }
 }
 
 export function gomrSystemContextText(plan: any) {
@@ -220,6 +230,40 @@ export function gomrSystemContextText(plan: any) {
     "Current context-plan:",
     JSON.stringify(plan, null, 2),
   ].join("\n")
+}
+
+export async function buildRepoGraph(project: string) {
+  await initMemory(project)
+  return buildStaticRepoGraph(project)
+}
+
+export async function importGraphifyRepoGraph(project: string, inputPath: string) {
+  await initMemory(project)
+  return importGraphify(project, inputPath)
+}
+
+export async function routeContextForGoal(project: string, goal: string) {
+  await initMemory(project)
+  return routeGoal(project, goal)
+}
+
+export async function readRouteForGoal(project: string, goalOrId: string) {
+  await initMemory(project)
+  return readRoutedPlan(project, goalOrId)
+}
+
+export async function buildContextForGoal(project: string, goalOrId: string) {
+  await initMemory(project)
+  return buildRebuiltContext(project, goalOrId)
+}
+
+export async function buildContextForRequestGoal(project: string, goal: string) {
+  await initMemory(project)
+  return buildRebuiltContextForGoal(project, goal)
+}
+
+export async function readCurrentRebuiltContext(project: string) {
+  return readCurrentContext(project)
 }
 
 export async function captureToolTrace(
@@ -610,11 +654,82 @@ async function buildVisualData(project: string, graph: { nodes: any[]; edges: an
     }
   }
 
+  const bundleDag = await buildBundleDag(project)
+
   return {
     generatedAt: new Date().toISOString(),
+    defaultMode: "compact",
+    layout: "layered-dag",
+    bundleDag,
     turns,
     nodes: positionedNodes,
     edges: visualEdges,
+  }
+}
+
+async function buildBundleDag(project: string) {
+  const plan = await fs
+    .readFile(path.join(project, pathsRoot, "current-route.json"), "utf8")
+    .then((text) => JSON.parse(text))
+    .catch(() => undefined)
+  const outputExists = await fs
+    .stat(path.join(project, contextRoot, "current.md"))
+    .then(() => true)
+    .catch(() => false)
+  const goalNode = {
+    id: plan?.goalId ? `dag/goal/${plan.goalId}` : "dag/goal/current",
+    label: plan?.goal || "Current Goal",
+    layer: 0,
+    x: 0,
+    y: 0,
+  }
+  const bundleNodes = (plan?.bundles ?? []).map((bundle: any, index: number) => ({
+    id: `dag/${bundle.id}`,
+    label: bundle.title,
+    layer: 1,
+    x: 320,
+    y: index * 110,
+    score: bundle.score,
+  }))
+  const materialNodes = (plan?.selectedMaterials ?? []).map((material: any, index: number) => ({
+    id: `dag/${material.id}`,
+    label: material.title,
+    layer: 2,
+    x: 640,
+    y: index * 72,
+    source: material.source,
+    score: material.score,
+  }))
+  const evidenceNodes = (plan?.evidence ?? []).map((evidence: any, index: number) => ({
+    id: `dag/${evidence.id}`,
+    label: evidence.title,
+    layer: 3,
+    x: 960,
+    y: index * 72,
+    source: evidence.source,
+  }))
+  const outputNode = {
+    id: "dag/output/current",
+    label: outputExists ? "Rebuilt Context Output" : "Rebuilt Context Output Pending",
+    layer: 4,
+    x: 1280,
+    y: 0,
+  }
+  return {
+    layers: [
+      { id: "goal", title: "Goal", x: 0 },
+      { id: "bundles", title: "Context Bundles", x: 320 },
+      { id: "materials", title: "Selected Materials", x: 640 },
+      { id: "evidence", title: "Evidence", x: 960 },
+      { id: "output", title: "Rebuilt Context Output", x: 1280 },
+    ],
+    nodes: [goalNode, ...bundleNodes, ...materialNodes, ...evidenceNodes, outputNode],
+    edges: [
+      ...bundleNodes.map((node: any) => ({ from: goalNode.id, to: node.id, type: "routes_to" })),
+      ...(plan?.selectedMaterials ?? []).map((material: any) => ({ from: `dag/${material.bundleId}`, to: `dag/${material.id}`, type: "contains" })),
+      ...(plan?.evidence ?? []).map((evidence: any) => ({ from: `dag/${evidence.materialId}`, to: `dag/${evidence.id}`, type: "evidenced_by" })),
+      ...evidenceNodes.map((node: any) => ({ from: node.id, to: outputNode.id, type: "included_in" })),
+    ],
   }
 }
 
@@ -1568,10 +1683,10 @@ function visualHtml(data: any) {
     @media (max-width:1100px) { .layout { grid-template-columns:1fr; } .summary-grid, .compare { grid-template-columns:1fr; } .detail { max-height:none; } }
   </style>
 </head>
-<body>
+<body data-default-mode="compact">
   <header>
     <h1>GOMR Context Reconstruction Visualization</h1>
-    <p>目标驱动上下文路径解释器：全局历史本地留存，本轮目标点亮最小充分路径。</p>
+    <p>Bundle DAG: Goal -> Context Bundles -> Selected Materials -> Evidence -> Rebuilt Context Output. 目标驱动上下文路径解释器：全局历史本地留存，本轮目标点亮最小充分路径。</p>
   </header>
   <div class="layout">
     <aside class="panel">
@@ -1591,9 +1706,10 @@ function visualHtml(data: any) {
       </section>
       <section class="panel">
         <div class="tabs">
-          <button class="tab active" data-view="graph">图路径：全局节点中点亮本轮路径</button>
-          <button class="tab" data-view="tree">树视图：路径节点展开</button>
-          <button class="tab" data-view="compare">对比：不重构 vs 重构后 Context</button>
+          <button class="tab active" data-view="graph">Compact Bundle DAG · 图路径：全局节点中点亮本轮路径</button>
+          <button class="tab" data-view="tree">Evidence · 树视图：路径节点展开</button>
+          <button class="tab" data-view="compare">Replacement · 对比：不重构 vs 重构后 Context</button>
+          <button class="tab" data-view="graph">Debug Full Graph</button>
           <label style="margin-left:auto;display:flex;align-items:center;gap:6px;color:var(--muted);font-size:12px;padding-right:12px;white-space:nowrap">
             <input type="checkbox" id="showAllNodes"> 显示全部节点
           </label>

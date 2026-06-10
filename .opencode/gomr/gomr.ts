@@ -3,10 +3,13 @@ import path from "node:path"
 
 import {
   buildContextState,
+  buildContextForGoal,
+  buildRepoGraph,
   buildGraphData,
   captureToolTrace,
   contextPlan,
   exportVisual,
+  importGraphifyRepoGraph,
   importOpenCodeTelemetry,
   importOpenCodeSessionGoals,
   initMemory,
@@ -41,10 +44,22 @@ try {
   } else if (command === "ledger" && subcommandOrProject === "update") {
     const project = requireProject(rest.shift())
     console.log(JSON.stringify(await buildContextState(project), null, 2))
+  } else if (command === "repo" && subcommandOrProject === "build") {
+    const project = requireProject(rest.shift())
+    console.log(JSON.stringify(await buildRepoGraph(project), null, 2))
+  } else if (command === "repo" && subcommandOrProject === "import-graphify") {
+    const project = requireProject(rest.shift())
+    const flags = parseFlags(rest)
+    if (!flags.input) throw new Error("Missing --input <graphify-output.json>.")
+    console.log(JSON.stringify(await importGraphifyRepoGraph(project, flags.input), null, 2))
   } else if (command === "plan") {
     const project = requireProject(subcommandOrProject)
     const flags = parseFlags(rest)
     console.log(JSON.stringify(await contextPlan(project, flags.goal || "current OpenCode task", { sessionId: flags.session }), null, 2))
+  } else if (command === "context" && subcommandOrProject === "build") {
+    const project = requireProject(rest.shift())
+    const flags = parseFlags(rest)
+    console.log(JSON.stringify(await buildContextForGoal(project, flags.goal || "current OpenCode task"), null, 2))
   } else if (command === "snapshot") {
     const project = requireProject(subcommandOrProject)
     const flags = parseFlags(rest)
@@ -110,7 +125,10 @@ function usage() {
   gomr.ts index <project>
   gomr.ts trace append <project> --tool <tool> --target <target> --status <status> --summary <summary>
   gomr.ts ledger update <project>
+  gomr.ts repo build <project>
+  gomr.ts repo import-graphify <project> --input <graphify-output.json>
   gomr.ts plan <project> --goal "<goal>"
+  gomr.ts context build <project> --goal "<goal-id>"
   gomr.ts snapshot <project> --goal "<goal>"
   gomr.ts graph build <project>
   gomr.ts sessions import <project>

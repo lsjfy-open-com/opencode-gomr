@@ -614,6 +614,132 @@ test("gomr CLI exposes v0.2 init, trace, plan, graph, and visual commands", asyn
   assert.equal(await exists(path.join(project, ".orca-memory", "visual", "index.html")), true)
 })
 
+test("gomr v0.6 builds a static repo graph with required node and edge fields", async () => {
+  const project = await createProject({
+    "README.md": "# Demo\n\nDocuments parser adapter work.",
+    "docs/adapter.md": "# Adapter Spec\n\nParser adapter spec.",
+    "src/parser.ts": "export function parse(input: string) { return input.trim() }\n",
+    "tests/parser.test.ts": "import { test } from 'node:test'\n",
+    ".opencode/agents/context-router.md": "Context router agent.",
+    ".codex/notes.md": "Codex task notes.",
+    "package.json": JSON.stringify({ name: "demo", scripts: { test: "node --test" } }, null, 2),
+  })
+
+  await run("gomr.ts", "repo", "build", project)
+
+  const graph = JSON.parse(await fs.readFile(path.join(project, ".orca-memory", "graph", "static-repo-graph.json"), "utf8"))
+
+  assert.equal(graph.version, 1)
+  assert.equal(graph.nodes.length > 0, true)
+  assert.equal(graph.edges.length > 0, true)
+  assert.equal(graph.nodes.every((node) => node.id && node.title && node.summary && node.source && Array.isArray(node.tags)), true)
+  assert.equal(graph.edges.every((edge) => edge.from && edge.to && edge.type && typeof edge.weight === "number"), true)
+  assert.equal(graph.nodes.some((node) => node.source === "README.md"), true)
+  assert.equal(graph.nodes.some((node) => node.source.startsWith("docs/")), true)
+  assert.equal(graph.nodes.some((node) => node.source.startsWith("src/")), true)
+  assert.equal(graph.nodes.some((node) => node.source.startsWith("tests/")), true)
+})
+
+test("gomr v0.6 routes goals without LLM and emits scored bundles and materials", async () => {
+  const project = await createProject({
+    "README.md": "# Demo\n\nParser adapter project.",
+    "docs/adapter.md": "# Adapter Spec\n\nImplement adapter routing.",
+    "src/adapter.ts": "export const adapter = true\n",
+    "src/parser.ts": "export const parser = true\n",
+    "tests/adapter.test.ts": "import { test } from 'node:test'\n",
+    "package.json": JSON.stringify({ name: "demo" }, null, 2),
+  })
+
+  const plan = JSON.parse((await run("gomr.ts", "plan", project, "--goal", "implement adapter")).stdout)
+
+  assert.equal(plan.routing.algorithm, "goal-conditioned-ppr")
+  assert.equal(plan.routing.llmUsedForRouting, false)
+  assert.equal(plan.bundles.length > 0, true)
+  assert.equal(plan.selectedMaterials.length > 0, true)
+  assert.equal(plan.selectedMaterials.every((material) => material.id && material.bundleId && typeof material.score === "number"), true)
+  assert.equal(plan.selectedMaterials.every((material) => plan.scoreBreakdown[material.id]), true)
+  assert.equal(await exists(path.join(project, ".orca-memory", "paths", `${plan.goalId}.json`)), true)
+})
+
+test("gomr v0.6 context build writes current rebuilt context and debug copy", async () => {
+  const project = await createProject({
+    "README.md": "# Demo\n\nParser adapter project.",
+    "docs/adapter.md": "# Adapter Spec\n",
+    "src/adapter.ts": "export const adapter = true\n",
+    "package.json": JSON.stringify({ name: "demo" }, null, 2),
+  })
+
+  const plan = JSON.parse((await run("gomr.ts", "plan", project, "--goal", "implement adapter")).stdout)
+  await run("gomr.ts", "context", "build", project, "--goal", plan.goalId)
+
+  const current = await fs.readFile(path.join(project, ".orca-memory", "context", "current.md"), "utf8")
+  const debug = await fs.readFile(path.join(project, ".orca-memory", "debug", "last-model-context.md"), "utf8")
+
+  assert.equal(await exists(path.join(project, ".orca-memory", "context", `${plan.goalId}.md`)), true)
+  assert.equal(current.includes("# GOMR Rebuilt Context"), true)
+  assert.equal(current.includes("mode: replace"), true)
+  assert.equal(current.includes("raw_context_replaced: true"), true)
+  assert.equal(current.includes("## Context Bundles"), true)
+  assert.equal(current.includes("## Explicitly Excluded Raw Context"), true)
+  assert.equal(debug, current)
+})
+
+test("gomr v0.6 visual defaults to bundle DAG and keeps full graph as debug-only", async () => {
+  const project = await createProject({
+    "README.md": "# Demo\n\nParser adapter project.",
+    "docs/adapter.md": "# Adapter Spec\n",
+    "src/adapter.ts": "export const adapter = true\n",
+    "tests/adapter.test.ts": "import { test } from 'node:test'\n",
+  })
+
+  await run("gomr.ts", "plan", project, "--goal", "implement adapter")
+  await run("gomr.ts", "context", "build", project, "--goal", "implement-adapter")
+  await run("gomr.ts", "visual", "export", project)
+
+  const visual = await fs.readFile(path.join(project, ".orca-memory", "visual", "index.html"), "utf8")
+  const data = JSON.parse(await fs.readFile(path.join(project, ".orca-memory", "visual", "graph-data.json"), "utf8"))
+
+  assert.equal(data.defaultMode, "compact")
+  assert.equal(data.layout, "layered-dag")
+  assert.equal(Array.isArray(data.bundleDag.layers), true)
+  assert.equal(data.bundleDag.layers.map((layer) => layer.id).join(">"), "goal>bundles>materials>evidence>output")
+  assert.equal(visual.includes("Bundle DAG"), true)
+  assert.equal(visual.includes("data-default-mode=\"compact\""), true)
+  assert.equal(visual.includes("Debug Full Graph"), true)
+  assert.equal(visual.includes("forceSimulation("), false)
+})
+
+test("gomr v0.6 replace request uses rebuilt context and omits old raw history", async () => {
+  const project = await createProject({
+    "README.md": "# Demo\n\nParser adapter project.",
+    "docs/adapter.md": "# Adapter Spec\n",
+    "src/adapter.ts": "export const adapter = true\n",
+  })
+  const mod = await import("../plugins/gomr.ts")
+  const plan = JSON.parse((await run("gomr.ts", "plan", project, "--goal", "implement adapter")).stdout)
+  await run("gomr.ts", "context", "build", project, "--goal", plan.goalId)
+
+  const request = {
+    model: "deepseek-v4-pro",
+    messages: [
+      { role: "system", content: "OpenCode core system prompt" },
+      { role: "user", content: "Old request that should be replaced" },
+      { role: "assistant", content: "Very large raw history that should be removed" },
+      { role: "tool", content: "Complete raw tool output that should be removed" },
+      { role: "user", content: "implement adapter" },
+    ],
+    tools: [{ type: "function", function: { name: "read" } }],
+  }
+
+  const rewritten = await mod.rewriteOpenCodeRequestForGomr(project, request)
+  const serialized = JSON.stringify(rewritten)
+
+  assert.equal(serialized.includes("# GOMR Rebuilt Context"), true)
+  assert.equal(serialized.includes("raw_context_replaced: true"), true)
+  assert.equal(serialized.includes("Very large raw history"), false)
+  assert.equal(serialized.includes("Complete raw tool output"), false)
+})
+
 test("gomr CLI snapshot returns the generated turn snapshot", async () => {
   const project = await createProject({
     "README.md": "# Demo\n",
@@ -852,7 +978,8 @@ test("plugin replacement mode rewrites provider messages to GOMR context plus la
     ["system", "system", "user"],
   )
   assert.equal(rewritten.messages[0].content, "OpenCode core system prompt")
-  assert.equal(rewritten.messages[1].content.includes("Goal-Oriented Memory Runtime"), true)
+  assert.equal(rewritten.messages[1].content.includes("# GOMR Rebuilt Context"), true)
+  assert.equal(rewritten.messages[1].content.includes("raw_context_replaced: true"), true)
   assert.equal(rewritten.messages[1].content.includes("Current user request"), true)
   assert.equal(rewritten.messages.at(-1).content, "Current user request")
   assert.equal(JSON.stringify(rewritten).includes("Large old tool output"), false)
