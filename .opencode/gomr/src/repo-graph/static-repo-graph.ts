@@ -34,6 +34,30 @@ const memoryRoot = ".orca-memory"
 const graphPath = path.join(memoryRoot, "graph", "static-repo-graph.json")
 const scanRoots = ["README.md", "README", "docs", "src", "tests", ".trellis", ".opencode", ".codex", "package.json"]
 const ignoredDirs = new Set([".git", "node_modules", ".orca-memory", "dist", "build", ".next", ".turbo"])
+const ignoredFileNames = new Set(["package-lock.json", "pnpm-lock.yaml", "bun.lock", "bun.lockb", "yarn.lock"])
+const textExtensions = new Set([
+  "",
+  ".cjs",
+  ".css",
+  ".html",
+  ".js",
+  ".json",
+  ".jsx",
+  ".md",
+  ".mjs",
+  ".ps1",
+  ".py",
+  ".sh",
+  ".toml",
+  ".ts",
+  ".tsx",
+  ".txt",
+  ".yaml",
+  ".yml",
+])
+const maxReadBytes = 64 * 1024
+const maxMentionEdgesPerNode = 8
+const maxTagFanout = 250
 
 export async function buildStaticRepoGraph(project: string): Promise<StaticRepoGraph> {
   const nodes = new Map<string, RepoNode>()
@@ -56,13 +80,10 @@ export async function buildStaticRepoGraph(project: string): Promise<StaticRepoG
   }
 
   const nodeList = [...nodes.values()]
+  const tagIndex = buildTagIndex(nodeList)
   for (const source of nodeList) {
     if (source.id === "repo/root") continue
-    for (const target of nodeList) {
-      if (target.id === "repo/root" || target.id === source.id) continue
-      const weight = mentionWeight(source, target)
-      if (weight > 0) edges.push({ from: source.id, to: target.id, type: source.type === "doc" ? "documents" : "mentions", weight })
-    }
+    for (const edge of mentionEdgesForSource(source, nodeList, tagIndex)) edges.push(edge)
   }
 
   const graph = {
@@ -104,16 +125,17 @@ async function collect(project: string, relativePath: string, results: string[])
   if (stat.isDirectory()) {
     const name = path.basename(relativePath)
     if (ignoredDirs.has(name)) return
+    if (normalizePath(relativePath).includes("/assets")) return
     for (const child of await fs.readdir(fullPath)) {
       await collect(project, path.join(relativePath, child), results)
     }
     return
   }
-  if (stat.isFile()) results.push(normalizePath(relativePath))
+  if (stat.isFile() && isCandidateFile(relativePath)) results.push(normalizePath(relativePath))
 }
 
 async function nodeFromFile(project: string, source: string): Promise<RepoNode> {
-  const text = await fs.readFile(path.join(project, source), "utf8").catch(() => "")
+  const text = await readTextPrefix(path.join(project, source))
   const title = titleFor(source, text)
   const tags = tagsFor(source, text)
   return {
@@ -124,6 +146,25 @@ async function nodeFromFile(project: string, source: string): Promise<RepoNode> 
     source,
     tags,
     importance: importanceFor(source, tags),
+  }
+}
+
+function isCandidateFile(source: string) {
+  const normalized = normalizePath(source)
+  if (normalized.includes("/assets/")) return false
+  if (ignoredFileNames.has(path.basename(normalized))) return false
+  return textExtensions.has(path.extname(normalized).toLowerCase())
+}
+
+async function readTextPrefix(filePath: string) {
+  const handle = await fs.open(filePath, "r").catch(() => undefined)
+  if (!handle) return ""
+  try {
+    const buffer = Buffer.alloc(maxReadBytes)
+    const { bytesRead } = await handle.read(buffer, 0, maxReadBytes, 0)
+    return buffer.subarray(0, bytesRead).toString("utf8")
+  } finally {
+    await handle.close()
   }
 }
 
@@ -177,6 +218,47 @@ function mentionWeight(source: RepoNode, target: RepoNode) {
   const shared = source.tags.filter((tag) => target.tags.includes(tag) && tag.length > 3)
   if (shared.length === 0) return 0
   return Math.min(0.8, 0.15 + shared.length * 0.08)
+}
+
+function buildTagIndex(nodes: RepoNode[]) {
+  const index = new Map<string, RepoNode[]>()
+  for (const node of nodes) {
+    if (node.id === "repo/root") continue
+    for (const tag of node.tags) {
+      if (tag.length <= 3) continue
+      const bucket = index.get(tag) || []
+      bucket.push(node)
+      index.set(tag, bucket)
+    }
+  }
+  return index
+}
+
+function mentionEdgesForSource(source: RepoNode, nodes: RepoNode[], tagIndex: Map<string, RepoNode[]>): RepoEdge[] {
+  const candidates = new Map<string, RepoNode>()
+  for (const tag of source.tags) {
+    if (tag.length <= 3) continue
+    const bucket = tagIndex.get(tag)
+    if (!bucket || bucket.length > maxTagFanout) continue
+    for (const target of bucket) {
+      if (target.id !== source.id && target.id !== "repo/root") candidates.set(target.id, target)
+    }
+  }
+  if (candidates.size === 0 && nodes.length <= maxTagFanout) {
+    for (const target of nodes) {
+      if (target.id !== source.id && target.id !== "repo/root") candidates.set(target.id, target)
+    }
+  }
+  return [...candidates.values()]
+    .map((target) => ({
+      from: source.id,
+      to: target.id,
+      type: source.type === "doc" ? ("documents" as const) : ("mentions" as const),
+      weight: mentionWeight(source, target),
+    }))
+    .filter((edge) => edge.weight > 0)
+    .sort((a, b) => b.weight - a.weight || a.to.localeCompare(b.to))
+    .slice(0, maxMentionEdgesPerNode)
 }
 
 function addNode(nodes: Map<string, RepoNode>, node: RepoNode) {

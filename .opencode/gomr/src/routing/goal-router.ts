@@ -77,10 +77,11 @@ export async function routeGoal(project: string, goal: string): Promise<RoutedCo
   await fs.mkdir(path.join(project, pathsRoot), { recursive: true })
   const graph = await readStaticRepoGraph(project)
   const terms = goalTerms(goal)
-  const ppr = personalizedPageRank(graph, terms)
+  const overviewGoal = isProjectUnderstandingGoal(goal, terms)
+  const ppr = personalizedPageRank(graph, terms, overviewGoal)
   const scored = graph.nodes
     .filter((node) => node.id !== "repo/root")
-    .map((node) => ({ node, breakdown: scoreNode(node, terms, ppr.get(node.id) ?? 0) }))
+    .map((node) => ({ node, breakdown: scoreNode(node, terms, ppr.get(node.id) ?? 0, overviewGoal) }))
     .sort((a, b) => b.breakdown.score - a.breakdown.score)
   const selected = scored.slice(0, 12)
   const excluded = scored.slice(12, 24)
@@ -124,9 +125,9 @@ export async function readRoutedPlan(project: string, goalOrId: string): Promise
   return routeGoal(project, goalOrId)
 }
 
-function personalizedPageRank(graph: StaticRepoGraph, terms: string[]) {
+function personalizedPageRank(graph: StaticRepoGraph, terms: string[], overviewGoal = false) {
   const scores = new Map<string, number>()
-  const seedNodes = graph.nodes.filter((node) => lexicalScore(node, terms) > 0)
+  const seedNodes = graph.nodes.filter((node) => lexicalScore(node, terms, overviewGoal) > 0)
   for (const node of graph.nodes) scores.set(node.id, seedNodes.includes(node) ? 1 / Math.max(1, seedNodes.length) : 0.02)
   for (let iteration = 0; iteration < 6; iteration++) {
     const next = new Map<string, number>()
@@ -142,14 +143,16 @@ function personalizedPageRank(graph: StaticRepoGraph, terms: string[]) {
   return scores
 }
 
-function scoreNode(node: RepoNode, terms: string[], ppr: number): ScoreBreakdown {
-  const lexical = lexicalScore(node, terms)
+function scoreNode(node: RepoNode, terms: string[], ppr: number, overviewGoal = false): ScoreBreakdown {
+  const lexical = lexicalScore(node, terms, overviewGoal)
   const state = node.source.startsWith(".opencode/") || node.source.startsWith(".codex/") ? 0.7 : 0.35
   const freshness = node.source.startsWith("src/") || node.source.startsWith("tests/") ? 0.65 : 0.45
   const importance = node.importance ?? 0.5
   const backtrack = node.tags.includes("trace") || node.tags.includes("decision") ? 0.4 : 0.1
-  const penalties = node.source.includes("lock") ? 0.2 : 0
-  const score = 0.45 * ppr + 0.2 * lexical + 0.15 * state + 0.1 * freshness + 0.05 * importance + 0.05 * backtrack - penalties
+  const penalties = (node.source.includes("lock") ? 0.2 : 0) + (overviewGoal && node.source.startsWith("tests/") ? 0.6 : 0)
+  const score = overviewGoal
+    ? 0.55 * lexical + 0.2 * importance + 0.1 * freshness + 0.05 * state + 0.1 * ppr - penalties
+    : 0.45 * ppr + 0.2 * lexical + 0.15 * state + 0.1 * freshness + 0.05 * importance + 0.05 * backtrack - penalties
   return {
     ppr: round(ppr),
     lexical: round(lexical),
@@ -162,11 +165,20 @@ function scoreNode(node: RepoNode, terms: string[], ppr: number): ScoreBreakdown
   }
 }
 
-function lexicalScore(node: RepoNode, terms: string[]) {
+function lexicalScore(node: RepoNode, terms: string[], overviewGoal = false) {
+  if (overviewGoal) return Math.max(overviewScore(node), lexicalScore(node, terms, false))
   if (terms.length === 0) return 0
   const haystack = `${node.title} ${node.summary} ${node.source} ${node.tags.join(" ")}`.toLowerCase()
   const hits = terms.filter((term) => haystack.includes(term)).length
   return Math.min(1, hits / terms.length)
+}
+
+function overviewScore(node: RepoNode) {
+  if (/^README/i.test(node.source)) return 1
+  if (node.source === "package.json") return 0.85
+  if (node.source.startsWith("docs/") && node.source.endsWith(".md")) return 0.9
+  if (/src\/(index|main|app)\.[tj]sx?$/.test(node.source)) return 0.45
+  return 0
 }
 
 function bundleSelected(selected: { node: RepoNode; breakdown: ScoreBreakdown }[]): ContextBundle[] {
@@ -246,6 +258,17 @@ function normalize(values: Map<string, number>) {
 
 function goalTerms(goal: string) {
   return [...new Set(goal.toLowerCase().match(/[a-z0-9_\u4e00-\u9fff-]{2,}/g) ?? [])]
+}
+
+function isProjectUnderstandingGoal(goal: string, terms: string[]) {
+  const normalized = goal.toLowerCase()
+  return (
+    normalized.includes("项目理解") ||
+    normalized.includes("project understanding") ||
+    normalized.includes("understand project") ||
+    terms.includes("overview") ||
+    terms.includes("architecture")
+  )
 }
 
 function round(value: number) {

@@ -233,8 +233,8 @@ node --no-warnings --test .opencode/gomr/gomr.test.ts
 Expected result:
 
 ```text
-tests 48
-pass 48
+tests 52
+pass 52
 fail 0
 ```
 

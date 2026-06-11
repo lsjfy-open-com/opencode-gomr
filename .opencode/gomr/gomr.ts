@@ -46,7 +46,8 @@ try {
     console.log(JSON.stringify(await buildContextState(project), null, 2))
   } else if (command === "repo" && subcommandOrProject === "build") {
     const project = requireProject(rest.shift())
-    console.log(JSON.stringify(await buildRepoGraph(project), null, 2))
+    const graph = await buildRepoGraph(project)
+    console.log(JSON.stringify({ path: path.join(".orca-memory", "graph", "static-repo-graph.json"), nodes: graph.nodes.length, edges: graph.edges.length }, null, 2))
   } else if (command === "repo" && subcommandOrProject === "import-graphify") {
     const project = requireProject(rest.shift())
     const flags = parseFlags(rest)

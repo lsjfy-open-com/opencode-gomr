@@ -676,59 +676,142 @@ async function buildBundleDag(project: string) {
     .stat(path.join(project, contextRoot, "current.md"))
     .then(() => true)
     .catch(() => false)
+  const maxVisibleMaterialsPerBundle = 3
   const goalNode = {
     id: plan?.goalId ? `dag/goal/${plan.goalId}` : "dag/goal/current",
+    type: "goal",
     label: plan?.goal || "Current Goal",
+    summary: "Current goal routed through selected context bundles.",
     layer: 0,
     x: 0,
     y: 0,
+    visibleInCompact: true,
   }
   const bundleNodes = (plan?.bundles ?? []).map((bundle: any, index: number) => ({
     id: `dag/${bundle.id}`,
+    type: "bundle",
     label: bundle.title,
+    summary: bundle.summary,
     layer: 1,
-    x: 320,
-    y: index * 110,
+    x: 280,
+    y: 44 + index * 150,
     score: bundle.score,
+    visibleInCompact: true,
+    childNodeIds: (plan?.selectedMaterials ?? []).filter((material: any) => material.bundleId === bundle.id).map((material: any) => `dag/${material.id}`),
   }))
-  const materialNodes = (plan?.selectedMaterials ?? []).map((material: any, index: number) => ({
-    id: `dag/${material.id}`,
-    label: material.title,
-    layer: 2,
-    x: 640,
-    y: index * 72,
-    source: material.source,
-    score: material.score,
-  }))
-  const evidenceNodes = (plan?.evidence ?? []).map((evidence: any, index: number) => ({
-    id: `dag/${evidence.id}`,
-    label: evidence.title,
-    layer: 3,
-    x: 960,
-    y: index * 72,
-    source: evidence.source,
-  }))
+  const materialNodes: any[] = []
+  const evidenceNodes: any[] = []
+  const collapsedNodes: any[] = []
+  const evidenceByMaterial = new Map<string, any[]>()
+  for (const evidence of plan?.evidence ?? []) {
+    const bucket = evidenceByMaterial.get(evidence.materialId) ?? []
+    bucket.push(evidence)
+    evidenceByMaterial.set(evidence.materialId, bucket)
+  }
+  for (const [bundleIndex, bundle] of (plan?.bundles ?? []).entries()) {
+    const materials = (plan?.selectedMaterials ?? []).filter((material: any) => material.bundleId === bundle.id)
+    const visibleMaterials = materials.slice(0, maxVisibleMaterialsPerBundle)
+    const hiddenMaterials = materials.slice(maxVisibleMaterialsPerBundle)
+    const baseY = 36 + bundleIndex * 174
+    for (const [materialIndex, material] of materials.entries()) {
+      const visible = materialIndex < maxVisibleMaterialsPerBundle
+      const parentId = `dag/${bundle.id}/overflow`
+      materialNodes.push({
+        id: `dag/${material.id}`,
+        type: "material",
+        label: material.title,
+        summary: material.summary,
+        layer: 2,
+        x: 560,
+        y: baseY + Math.min(materialIndex, maxVisibleMaterialsPerBundle) * 64,
+        source: material.source,
+        score: material.score,
+        reason: material.reason,
+        bundleId: `dag/${bundle.id}`,
+        parentId: visible ? `dag/${bundle.id}` : parentId,
+        visibleInCompact: visible,
+      })
+    }
+    if (hiddenMaterials.length > 0) {
+      collapsedNodes.push({
+        id: `dag/${bundle.id}/overflow`,
+        type: "collapsed",
+        label: `+${hiddenMaterials.length} more materials`,
+        summary: "Click to expand hidden files selected for this bundle.",
+        layer: 2,
+        x: 560,
+        y: baseY + visibleMaterials.length * 64,
+        hiddenCount: hiddenMaterials.length,
+        childNodeIds: hiddenMaterials.map((material: any) => `dag/${material.id}`),
+        visibleInCompact: true,
+      })
+    }
+    for (const [materialIndex, material] of visibleMaterials.entries()) {
+      const evidenceItems = evidenceByMaterial.get(material.id) ?? []
+      const summaryId = `dag/evidence-summary/${slug(material.id)}`
+      evidenceNodes.push({
+        id: summaryId,
+        type: "evidence",
+        label: `${evidenceItems.length} evidence anchors`,
+        summary: evidenceItems.map((item) => item.summary).join(" "),
+        layer: 3,
+        x: 860,
+        y: baseY + materialIndex * 64,
+        source: material.source,
+        materialId: `dag/${material.id}`,
+        evidenceItems,
+        visibleInCompact: true,
+      })
+      for (const [evidenceIndex, evidence] of evidenceItems.entries()) {
+        evidenceNodes.push({
+          id: `dag/${evidence.id}`,
+          type: "evidence-detail",
+          label: evidence.title,
+          summary: evidence.summary,
+          layer: 3,
+          x: 860,
+          y: baseY + materialIndex * 64 + (evidenceIndex + 1) * 52,
+          source: evidence.source,
+          parentId: summaryId,
+          materialId: `dag/${material.id}`,
+          visibleInCompact: false,
+        })
+      }
+    }
+  }
   const outputNode = {
     id: "dag/output/current",
+    type: "output",
     label: outputExists ? "Rebuilt Context Output" : "Rebuilt Context Output Pending",
+    summary: "The context file used by replace mode for the next model request.",
     layer: 4,
-    x: 1280,
-    y: 0,
+    x: 1120,
+    y: 240,
+    visibleInCompact: true,
   }
+  const nodes = [goalNode, ...bundleNodes, ...materialNodes, ...collapsedNodes, ...evidenceNodes, outputNode]
+  const visibleEvidenceNodes = evidenceNodes.filter((node) => node.type === "evidence")
   return {
+    mode: "compact",
+    compactLimits: {
+      visibleMaterialsPerBundle: maxVisibleMaterialsPerBundle,
+    },
     layers: [
       { id: "goal", title: "Goal", x: 0 },
-      { id: "bundles", title: "Context Bundles", x: 320 },
-      { id: "materials", title: "Selected Materials", x: 640 },
-      { id: "evidence", title: "Evidence", x: 960 },
-      { id: "output", title: "Rebuilt Context Output", x: 1280 },
+      { id: "bundles", title: "Context Bundles", x: 280 },
+      { id: "materials", title: "Selected Materials", x: 560 },
+      { id: "evidence", title: "Evidence", x: 860 },
+      { id: "output", title: "Rebuilt Context Output", x: 1120 },
     ],
-    nodes: [goalNode, ...bundleNodes, ...materialNodes, ...evidenceNodes, outputNode],
+    nodes,
+    hiddenNodeIds: nodes.filter((node) => node.visibleInCompact === false).map((node) => node.id),
     edges: [
       ...bundleNodes.map((node: any) => ({ from: goalNode.id, to: node.id, type: "routes_to" })),
-      ...(plan?.selectedMaterials ?? []).map((material: any) => ({ from: `dag/${material.bundleId}`, to: `dag/${material.id}`, type: "contains" })),
-      ...(plan?.evidence ?? []).map((evidence: any) => ({ from: `dag/${evidence.materialId}`, to: `dag/${evidence.id}`, type: "evidenced_by" })),
-      ...evidenceNodes.map((node: any) => ({ from: node.id, to: outputNode.id, type: "included_in" })),
+      ...materialNodes.map((node: any) => ({ from: node.parentId || node.bundleId, to: node.id, type: "contains" })),
+      ...collapsedNodes.flatMap((node: any) => node.childNodeIds.map((childId: string) => ({ from: node.id, to: childId, type: "hidden_contains" }))),
+      ...visibleEvidenceNodes.map((node: any) => ({ from: node.materialId, to: node.id, type: "evidenced_by" })),
+      ...evidenceNodes.filter((node: any) => node.parentId).map((node: any) => ({ from: node.parentId, to: node.id, type: "evidence_detail" })),
+      ...visibleEvidenceNodes.map((node: any) => ({ from: node.id, to: outputNode.id, type: "included_in" })),
     ],
   }
 }
@@ -1706,10 +1789,10 @@ function visualHtml(data: any) {
       </section>
       <section class="panel">
         <div class="tabs">
-          <button class="tab active" data-view="graph">Compact Bundle DAG · 图路径：全局节点中点亮本轮路径</button>
+          <button class="tab active" data-view="dag">Compact Bundle DAG · 图路径：全局节点中点亮本轮路径</button>
           <button class="tab" data-view="tree">Evidence · 树视图：路径节点展开</button>
           <button class="tab" data-view="compare">Replacement · 对比：不重构 vs 重构后 Context</button>
-          <button class="tab" data-view="graph">Debug Full Graph</button>
+          <button class="tab" data-view="debug">Debug Full Graph</button>
           <label style="margin-left:auto;display:flex;align-items:center;gap:6px;color:var(--muted);font-size:12px;padding-right:12px;white-space:nowrap">
             <input type="checkbox" id="showAllNodes"> 显示全部节点
           </label>
@@ -1728,11 +1811,13 @@ function visualHtml(data: any) {
     let latestTurn = graph.turns && graph.turns.length ? graph.turns[graph.turns.length - 1].id : "";
      let activeTurn = latestTurn;
     let activeNode = "";
-    let currentView = "graph";
+    let currentView = "dag";
     let timer = null;
     let showAllNodes = false;
+    let expandedDagNodes = new Set();
 
     function byId(id) { return (graph.nodes || []).find(function(node) { return node.id === id; }); }
+    function byDagId(id) { return ((graph.bundleDag && graph.bundleDag.nodes) || []).find(function(node) { return node.id === id; }); }
     function turn() { return (graph.turns || []).find(function(item) { return item.id === activeTurn; }) || (graph.turns || [])[0]; }
 
     async function loadGraph() {
@@ -1766,6 +1851,44 @@ function visualHtml(data: any) {
         '<div class="metric"><div class="label">Context 重构减少</div><div class="value">' + reduction + '%</div><div class="hint">raw vs rebuilt</div></div>' +
         '<div class="metric"><div class="label">复用历史锚点</div><div class="value">' + (t.reusedAnchors || []).length + '</div><div class="hint">trace / ledger / path</div></div>' +
         '<div class="metric"><div class="label">新增路径节点</div><div class="value">' + (t.newNodes || []).length + '</div><div class="hint">Added nodes</div></div>';
+    }
+
+    function renderBundleDag() {
+      var dag = graph.bundleDag || { nodes: [], edges: [], layers: [] };
+      var nodes = dag.nodes || [];
+      var edges = dag.edges || [];
+      if (!byDagId(activeNode) && nodes.length) activeNode = nodes[0].id;
+      function visible(node) {
+        if (node.visibleInCompact !== false) return true;
+        return expandedDagNodes.has(node.parentId) || expandedDagNodes.has(node.id);
+      }
+      var visibleIds = new Set(nodes.filter(visible).map(function(node) { return node.id; }));
+      var edgeSvg = '<svg class="edges" viewBox="0 0 1380 720"><defs><marker id="dagArrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#4db5ff"></path></marker></defs>' +
+        edges.map(function(edge) {
+          if (!visibleIds.has(edge.from) || !visibleIds.has(edge.to)) return "";
+          var a = byDagId(edge.from), b = byDagId(edge.to);
+          if (!a || !b) return "";
+          var x1 = (a.x || 0) + 190, y1 = (a.y || 0) + 44, x2 = b.x || 0, y2 = (b.y || 0) + 44;
+          var mid = Math.round((x1 + x2) / 2);
+          return '<path d="M' + x1 + ',' + y1 + ' C' + mid + ',' + y1 + ' ' + mid + ',' + y2 + ' ' + x2 + ',' + y2 + '" stroke="#4db5ff" stroke-width="2" opacity=".72" fill="none" marker-end="url(#dagArrow)"><title>' + escapeHtml(edge.type) + '</title></path>';
+        }).join("") + '</svg>';
+      var layerLabels = (dag.layers || []).map(function(layer) {
+        return '<div class="small" style="position:absolute;left:' + (layer.x || 0) + 'px;top:8px;width:190px;text-align:center;color:#8ea0c5">' + escapeHtml(layer.title) + '</div>';
+      }).join("");
+      var nodeHtml = nodes.map(function(node) {
+        if (!visible(node)) return "";
+        var cls = 'node path ' + (node.type || '') + (activeNode === node.id ? ' selected' : '');
+        var count = node.hiddenCount ? '<span class="badge">hidden ' + node.hiddenCount + '</span>' : '';
+        var score = typeof node.score === "number" ? '<div class="score"><span style="width:' + Math.round(node.score * 100) + '%"></span></div>' : '';
+        return '<div class="' + cls + '" style="left:' + (node.x || 0) + 'px;top:' + (node.y || 0) + 'px" onclick="selectDagNode(\\'' + escAttr(node.id) + '\\')">' +
+          '<div class="kind">' + escapeHtml(node.type || 'node') + '</div>' +
+          '<div class="title">' + escapeHtml(node.label || node.id) + '</div>' +
+          '<div class="summary">' + escapeHtml(node.summary || node.source || '') + '</div>' +
+          count + score + '</div>';
+      }).join("");
+      document.getElementById("viewContainer").innerHTML =
+        '<div class="small" style="margin:0 0 12px">Compact mode shows bundle-level context first. Click a bundle, hidden count, or evidence node to reveal the files and anchors behind it.</div>' +
+        '<div class="graph-stage" style="width:1380px;height:720px">' + layerLabels + edgeSvg + nodeHtml + '</div>';
     }
 
     function renderGraph() {
@@ -1850,6 +1973,27 @@ function visualHtml(data: any) {
     function renderDetail() {
       const t = turn();
       if (!t) return;
+      const dagNode = byDagId(activeNode);
+      if (dagNode) {
+        const children = (dagNode.childNodeIds || []).map(byDagId).filter(Boolean);
+        const evidenceItems = dagNode.evidenceItems || [];
+        document.getElementById("detail").innerHTML =
+          '<div class="detail-card"><h3>' + escapeHtml(dagNode.label || dagNode.id) + '</h3>' +
+          '<div class="kv"><div class="k">id</div><div>' + escapeHtml(dagNode.id) + '</div></div>' +
+          '<div class="kv"><div class="k">type</div><div>' + escapeHtml(dagNode.type || '') + '</div></div>' +
+          '<div class="kv"><div class="k">source</div><div>' + escapeHtml(dagNode.source || '') + '</div></div>' +
+          '<div class="kv"><div class="k">score</div><div>' + (typeof dagNode.score === "number" ? Math.round(dagNode.score * 100) + '%' : '-') + '</div></div>' +
+          '<div class="kv"><div class="k">visibility</div><div>' + (dagNode.visibleInCompact === false ? 'hidden until expanded' : 'visible in compact DAG') + '</div></div></div>' +
+          '<div class="detail-card"><h3>Summary</h3><p>' + escapeHtml(dagNode.summary || dagNode.reason || '') + '</p>' +
+          (dagNode.hiddenCount ? '<p class="small">This node represents ' + dagNode.hiddenCount + ' hidden materials. Click it again to collapse or expand.</p>' : '') + '</div>' +
+          '<div class="detail-card"><h3>Hidden / Child Nodes</h3>' +
+          (children.length ? children.map(function(child) { return '<span class="chip" onclick="selectDagNode(\\'' + escAttr(child.id) + '\\')">' + escapeHtml(child.label || child.id) + '</span>'; }).join("") : '<p class="small">No hidden children.</p>') +
+          '</div>' +
+          '<div class="detail-card"><h3>Evidence Items</h3>' +
+          (evidenceItems.length ? evidenceItems.map(function(item) { return '<div class="block used"><strong>' + escapeHtml(item.title) + '</strong><div class="small">' + escapeHtml(item.summary || '') + '</div></div>'; }).join("") : '<p class="small">No evidence detail for this node.</p>') +
+          '</div>';
+        return;
+      }
       const n = byId(activeNode || (t.path || [])[0]);
       if (!n) return;
       activeNode = n.id;
@@ -1874,7 +2018,8 @@ function visualHtml(data: any) {
     function render() {
       renderTurns();
       renderMetrics();
-      if (currentView === "graph") renderGraph();
+      if (currentView === "dag") renderBundleDag();
+      if (currentView === "debug") renderGraph();
       if (currentView === "tree") renderTree();
       if (currentView === "compare") renderCompare();
       renderDetail();
@@ -1889,6 +2034,16 @@ function visualHtml(data: any) {
 
     function selectNode(id) {
       activeNode = id;
+      render();
+    }
+
+    function selectDagNode(id) {
+      activeNode = id;
+      const node = byDagId(id);
+      if (node && ((node.childNodeIds || []).length || node.type === "collapsed" || node.type === "evidence")) {
+        if (expandedDagNodes.has(id)) expandedDagNodes.delete(id);
+        else expandedDagNodes.add(id);
+      }
       render();
     }
 
