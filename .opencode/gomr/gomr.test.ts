@@ -640,6 +640,54 @@ test("gomr v0.6 builds a static repo graph with required node and edge fields", 
   assert.equal(graph.nodes.some((node) => node.source.startsWith("tests/")), true)
 })
 
+test("gomr v0.6 bounds static repo graph edges for large projects with shared tags", async () => {
+  const files: Record<string, string> = {
+    "README.md": "# Big Demo\n\nProject understanding for shared runtime modules.",
+    "package.json": JSON.stringify({ name: "big-demo" }, null, 2),
+  }
+  for (let index = 0; index < 90; index++) {
+    files[`src/module-${String(index).padStart(3, "0")}.ts`] =
+      `export const module${index} = "shared runtime project understanding adapter parser context";\n`
+  }
+  const project = await createProject(files)
+
+  await runtime.buildRepoGraph(project)
+  await runtime.routeContextForGoal(project, "project understanding")
+  await runtime.buildContextForGoal(project, "project-understanding")
+  const cli = JSON.parse((await run("gomr.ts", "repo", "build", project)).stdout)
+
+  const graph = JSON.parse(await fs.readFile(path.join(project, ".orca-memory", "graph", "static-repo-graph.json"), "utf8"))
+  const current = await fs.readFile(path.join(project, ".orca-memory", "context", "current.md"), "utf8")
+
+  assert.equal(cli.nodes, graph.nodes.length)
+  assert.equal(cli.edges, graph.edges.length)
+  assert.equal(cli.path.endsWith(path.join(".orca-memory", "graph", "static-repo-graph.json")), true)
+  assert.equal(graph.nodes.length >= 90, true)
+  assert.equal(graph.edges.length <= graph.nodes.length * 12, true)
+  assert.equal(current.includes("# GOMR Rebuilt Context"), true)
+  assert.equal(current.length < 20000, true)
+})
+
+test("gomr v0.6 static repo graph skips binary assets and lockfiles", async () => {
+  const project = await createProject({
+    "README.md": "# Demo\n\nProject docs.",
+    "docs/overview.md": "# Overview\n\nReadable docs.",
+    "docs/assets/demo.gif": "GIF89a\u0000\u0001\u0002binary",
+    "docs/assets/icon.svg": "<svg><path /></svg>",
+    "src/app.ts": "export const app = true\n",
+    "package-lock.json": JSON.stringify({ lockfileVersion: 3 }, null, 2),
+    ".opencode/package-lock.json": JSON.stringify({ lockfileVersion: 3 }, null, 2),
+  })
+
+  const graph = await runtime.buildRepoGraph(project)
+  const sources = graph.nodes.map((node) => node.source)
+
+  assert.equal(sources.includes("docs/overview.md"), true)
+  assert.equal(sources.includes("src/app.ts"), true)
+  assert.equal(sources.some((source) => source.startsWith("docs/assets/")), false)
+  assert.equal(sources.some((source) => source.endsWith("package-lock.json")), false)
+})
+
 test("gomr v0.6 routes goals without LLM and emits scored bundles and materials", async () => {
   const project = await createProject({
     "README.md": "# Demo\n\nParser adapter project.",
@@ -659,6 +707,27 @@ test("gomr v0.6 routes goals without LLM and emits scored bundles and materials"
   assert.equal(plan.selectedMaterials.every((material) => material.id && material.bundleId && typeof material.score === "number"), true)
   assert.equal(plan.selectedMaterials.every((material) => plan.scoreBreakdown[material.id]), true)
   assert.equal(await exists(path.join(project, ".orca-memory", "paths", `${plan.goalId}.json`)), true)
+})
+
+test("gomr v0.6 routes project-understanding goals to overview materials before tests", async () => {
+  const files: Record<string, string> = {
+    "README.md": "# Product\n\nMain project overview.",
+    "docs/architecture.md": "# Architecture\n\nSystem design overview.",
+    "package.json": JSON.stringify({ name: "product" }, null, 2),
+    "src/app.ts": "export const app = true\n",
+  }
+  for (let index = 0; index < 24; index++) {
+    files[`tests/feature-${index}.test.ts`] = "import { describe, it } from 'vitest'\n"
+  }
+  const project = await createProject(files)
+
+  const plan = await runtime.routeContextForGoal(project, "项目理解")
+  const topSources = plan.selectedMaterials.slice(0, 5).map((material) => material.source)
+  const firstThree = topSources.slice(0, 3)
+
+  assert.equal(topSources.includes("README.md"), true)
+  assert.equal(topSources.includes("docs/architecture.md"), true)
+  assert.equal(firstThree.every((source) => source === "README.md" || source === "package.json" || source.startsWith("docs/")), true)
 })
 
 test("gomr v0.6 context build writes current rebuilt context and debug copy", async () => {
@@ -707,6 +776,38 @@ test("gomr v0.6 visual defaults to bundle DAG and keeps full graph as debug-only
   assert.equal(visual.includes("data-default-mode=\"compact\""), true)
   assert.equal(visual.includes("Debug Full Graph"), true)
   assert.equal(visual.includes("forceSimulation("), false)
+})
+
+test("gomr visual compact bundle DAG hides overflow nodes until expanded", async () => {
+  const files: Record<string, string> = {
+    "README.md": "# Demo\n\nParser adapter project.",
+    "docs/adapter.md": "# Adapter Spec\n",
+    "package.json": JSON.stringify({ name: "demo" }, null, 2),
+  }
+  for (let index = 0; index < 18; index++) {
+    files[`src/adapter-${index}.ts`] = `export const adapter${index} = "adapter parser runtime context";\n`
+  }
+  const project = await createProject(files)
+
+  await run("gomr.ts", "plan", project, "--goal", "implement adapter")
+  await run("gomr.ts", "context", "build", project, "--goal", "implement-adapter")
+  await run("gomr.ts", "visual", "export", project)
+
+  const visual = await fs.readFile(path.join(project, ".orca-memory", "visual", "index.html"), "utf8")
+  const data = JSON.parse(await fs.readFile(path.join(project, ".orca-memory", "visual", "graph-data.json"), "utf8"))
+  const dagNodes = data.bundleDag.nodes
+  const compactNodes = dagNodes.filter((node) => node.visibleInCompact !== false)
+  const hiddenNodes = dagNodes.filter((node) => node.visibleInCompact === false)
+  const collapsedNodes = dagNodes.filter((node) => node.type === "collapsed")
+
+  assert.equal(data.bundleDag.mode, "compact")
+  assert.equal(compactNodes.length < dagNodes.length, true)
+  assert.equal(hiddenNodes.length > 0, true)
+  assert.equal(collapsedNodes.some((node) => node.hiddenCount > 0 && node.childNodeIds.length > 0), true)
+  assert.equal(visual.includes("data-view=\"dag\""), true)
+  assert.equal(visual.includes("data-view=\"debug\""), true)
+  assert.equal(visual.includes("renderBundleDag"), true)
+  assert.equal(visual.includes("expandedDagNodes"), true)
 })
 
 test("gomr v0.6 replace request uses rebuilt context and omits old raw history", async () => {
