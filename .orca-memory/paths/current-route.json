@@ -1,0 +1,458 @@
+{
+  "version": 1,
+  "goal": "implement adapter",
+  "goalId": "implement-adapter",
+  "generated_at": "2026-06-10T01:51:20.740Z",
+  "routing": {
+    "algorithm": "goal-conditioned-ppr",
+    "llmUsedForRouting": false
+  },
+  "bundles": [
+    {
+      "id": "bundle/runtime-context",
+      "type": "runtime_context",
+      "title": "Runtime Context",
+      "summary": "Goal-relevant runtime context materials selected by deterministic routing.",
+      "score": 0.7165,
+      "reason": "Grouped by source area and selected after goal-conditioned scoring.",
+      "nodeIds": [
+        "repo/opencode-gomr-src-repo-graph-graphify-adapter-ts",
+        "repo/opencode-gomr-src-context-context-builder-ts",
+        "repo/opencode-gomr-gomr-test-ts",
+        "repo/opencode-gomr-runtime-ts",
+        "repo/opencode-gomr-src-routing-goal-router-ts",
+        "repo/opencode-gomr-context-plan-ts",
+        "repo/opencode-gomr-src-repo-graph-static-repo-graph-ts",
+        "repo/opencode-gomr-build-context-state-ts",
+        "repo/opencode-gomr-capture-tool-trace-ts",
+        "repo/opencode-gomr-gomr-ts",
+        "repo/opencode-plugins-gomr-ts",
+        "repo/opencode-gomr-memory-index-ts"
+      ]
+    }
+  ],
+  "selectedMaterials": [
+    {
+      "id": "material/repo/opencode-gomr-src-repo-graph-graphify-adapter-ts",
+      "bundleId": "bundle/runtime-context",
+      "type": "file",
+      "title": ".opencode/gomr/src/repo-graph/graphify-adapter.ts",
+      "summary": "import fs from \"node:fs/promises\"",
+      "source": ".opencode/gomr/src/repo-graph/graphify-adapter.ts",
+      "score": 0.7165,
+      "reason": "Matches goal terms: adapter."
+    },
+    {
+      "id": "material/repo/opencode-gomr-src-context-context-builder-ts",
+      "bundleId": "bundle/runtime-context",
+      "type": "file",
+      "title": ".opencode/gomr/src/context/context-builder.ts",
+      "summary": "import fs from \"node:fs/promises\"",
+      "source": ".opencode/gomr/src/context/context-builder.ts",
+      "score": 0.634,
+      "reason": "Connected through repo graph proximity and source importance."
+    },
+    {
+      "id": "material/repo/opencode-gomr-gomr-test-ts",
+      "bundleId": "bundle/runtime-context",
+      "type": "file",
+      "title": ".opencode/gomr/gomr.test.ts",
+      "summary": "import assert from \"node:assert/strict\"",
+      "source": ".opencode/gomr/gomr.test.ts",
+      "score": 0.6284,
+      "reason": "Connected through repo graph proximity and source importance."
+    },
+    {
+      "id": "material/repo/opencode-gomr-runtime-ts",
+      "bundleId": "bundle/runtime-context",
+      "type": "file",
+      "title": ".opencode/gomr/runtime.ts",
+      "summary": "import { createHash } from \"node:crypto\"",
+      "source": ".opencode/gomr/runtime.ts",
+      "score": 0.6247,
+      "reason": "Connected through repo graph proximity and source importance."
+    },
+    {
+      "id": "material/repo/opencode-gomr-src-routing-goal-router-ts",
+      "bundleId": "bundle/runtime-context",
+      "type": "file",
+      "title": ".opencode/gomr/src/routing/goal-router.ts",
+      "summary": "import fs from \"node:fs/promises\"",
+      "source": ".opencode/gomr/src/routing/goal-router.ts",
+      "score": 0.6206,
+      "reason": "Connected through repo graph proximity and source importance."
+    },
+    {
+      "id": "material/repo/opencode-gomr-context-plan-ts",
+      "bundleId": "bundle/runtime-context",
+      "type": "file",
+      "title": ".opencode/gomr/context-plan.ts",
+      "summary": "import { contextPlan } from \"./runtime.ts\"",
+      "source": ".opencode/gomr/context-plan.ts",
+      "score": 0.6204,
+      "reason": "Connected through repo graph proximity and source importance."
+    },
+    {
+      "id": "material/repo/opencode-gomr-src-repo-graph-static-repo-graph-ts",
+      "bundleId": "bundle/runtime-context",
+      "type": "file",
+      "title": ".opencode/gomr/src/repo-graph/static-repo-graph.ts",
+      "summary": "import fs from \"node:fs/promises\"",
+      "source": ".opencode/gomr/src/repo-graph/static-repo-graph.ts",
+      "score": 0.6152,
+      "reason": "Connected through repo graph proximity and source importance."
+    },
+    {
+      "id": "material/repo/opencode-gomr-build-context-state-ts",
+      "bundleId": "bundle/runtime-context",
+      "type": "file",
+      "title": ".opencode/gomr/build-context-state.ts",
+      "summary": "import { buildContextState } from \"./runtime.ts\"",
+      "source": ".opencode/gomr/build-context-state.ts",
+      "score": 0.6147,
+      "reason": "Connected through repo graph proximity and source importance."
+    },
+    {
+      "id": "material/repo/opencode-gomr-capture-tool-trace-ts",
+      "bundleId": "bundle/runtime-context",
+      "type": "file",
+      "title": ".opencode/gomr/capture-tool-trace.ts",
+      "summary": "import { captureToolTrace } from \"./runtime.ts\"",
+      "source": ".opencode/gomr/capture-tool-trace.ts",
+      "score": 0.6126,
+      "reason": "Connected through repo graph proximity and source importance."
+    },
+    {
+      "id": "material/repo/opencode-gomr-gomr-ts",
+      "bundleId": "bundle/runtime-context",
+      "type": "file",
+      "title": ".opencode/gomr/gomr.ts",
+      "summary": "import http from \"node:http\"",
+      "source": ".opencode/gomr/gomr.ts",
+      "score": 0.6095,
+      "reason": "Connected through repo graph proximity and source importance."
+    },
+    {
+      "id": "material/repo/opencode-plugins-gomr-ts",
+      "bundleId": "bundle/runtime-context",
+      "type": "file",
+      "title": ".opencode/plugins/gomr.ts",
+      "summary": "import {",
+      "source": ".opencode/plugins/gomr.ts",
+      "score": 0.6009,
+      "reason": "Connected through repo graph proximity and source importance."
+    },
+    {
+      "id": "material/repo/opencode-gomr-memory-index-ts",
+      "bundleId": "bundle/runtime-context",
+      "type": "file",
+      "title": ".opencode/gomr/memory-index.ts",
+      "summary": "import { initMemory } from \"./runtime.ts\"",
+      "source": ".opencode/gomr/memory-index.ts",
+      "score": 0.6002,
+      "reason": "Connected through repo graph proximity and source importance."
+    }
+  ],
+  "evidence": [
+    {
+      "id": "evidence/material-repo-opencode-gomr-src-repo-graph-graphify-adapter-ts",
+      "materialId": "material/repo/opencode-gomr-src-repo-graph-graphify-adapter-ts",
+      "type": "trace_summary",
+      "title": "Evidence for .opencode/gomr/src/repo-graph/graphify-adapter.ts",
+      "summary": "Selected because Matches goal terms: adapter.",
+      "source": ".opencode/gomr/src/repo-graph/graphify-adapter.ts"
+    },
+    {
+      "id": "evidence/material-repo-opencode-gomr-src-context-context-builder-ts",
+      "materialId": "material/repo/opencode-gomr-src-context-context-builder-ts",
+      "type": "trace_summary",
+      "title": "Evidence for .opencode/gomr/src/context/context-builder.ts",
+      "summary": "Selected because Connected through repo graph proximity and source importance.",
+      "source": ".opencode/gomr/src/context/context-builder.ts"
+    },
+    {
+      "id": "evidence/material-repo-opencode-gomr-gomr-test-ts",
+      "materialId": "material/repo/opencode-gomr-gomr-test-ts",
+      "type": "trace_summary",
+      "title": "Evidence for .opencode/gomr/gomr.test.ts",
+      "summary": "Selected because Connected through repo graph proximity and source importance.",
+      "source": ".opencode/gomr/gomr.test.ts"
+    },
+    {
+      "id": "evidence/material-repo-opencode-gomr-runtime-ts",
+      "materialId": "material/repo/opencode-gomr-runtime-ts",
+      "type": "trace_summary",
+      "title": "Evidence for .opencode/gomr/runtime.ts",
+      "summary": "Selected because Connected through repo graph proximity and source importance.",
+      "source": ".opencode/gomr/runtime.ts"
+    },
+    {
+      "id": "evidence/material-repo-opencode-gomr-src-routing-goal-router-ts",
+      "materialId": "material/repo/opencode-gomr-src-routing-goal-router-ts",
+      "type": "trace_summary",
+      "title": "Evidence for .opencode/gomr/src/routing/goal-router.ts",
+      "summary": "Selected because Connected through repo graph proximity and source importance.",
+      "source": ".opencode/gomr/src/routing/goal-router.ts"
+    },
+    {
+      "id": "evidence/material-repo-opencode-gomr-context-plan-ts",
+      "materialId": "material/repo/opencode-gomr-context-plan-ts",
+      "type": "trace_summary",
+      "title": "Evidence for .opencode/gomr/context-plan.ts",
+      "summary": "Selected because Connected through repo graph proximity and source importance.",
+      "source": ".opencode/gomr/context-plan.ts"
+    },
+    {
+      "id": "evidence/material-repo-opencode-gomr-src-repo-graph-static-repo-graph-ts",
+      "materialId": "material/repo/opencode-gomr-src-repo-graph-static-repo-graph-ts",
+      "type": "trace_summary",
+      "title": "Evidence for .opencode/gomr/src/repo-graph/static-repo-graph.ts",
+      "summary": "Selected because Connected through repo graph proximity and source importance.",
+      "source": ".opencode/gomr/src/repo-graph/static-repo-graph.ts"
+    },
+    {
+      "id": "evidence/material-repo-opencode-gomr-build-context-state-ts",
+      "materialId": "material/repo/opencode-gomr-build-context-state-ts",
+      "type": "trace_summary",
+      "title": "Evidence for .opencode/gomr/build-context-state.ts",
+      "summary": "Selected because Connected through repo graph proximity and source importance.",
+      "source": ".opencode/gomr/build-context-state.ts"
+    },
+    {
+      "id": "evidence/material-repo-opencode-gomr-capture-tool-trace-ts",
+      "materialId": "material/repo/opencode-gomr-capture-tool-trace-ts",
+      "type": "trace_summary",
+      "title": "Evidence for .opencode/gomr/capture-tool-trace.ts",
+      "summary": "Selected because Connected through repo graph proximity and source importance.",
+      "source": ".opencode/gomr/capture-tool-trace.ts"
+    },
+    {
+      "id": "evidence/material-repo-opencode-gomr-gomr-ts",
+      "materialId": "material/repo/opencode-gomr-gomr-ts",
+      "type": "trace_summary",
+      "title": "Evidence for .opencode/gomr/gomr.ts",
+      "summary": "Selected because Connected through repo graph proximity and source importance.",
+      "source": ".opencode/gomr/gomr.ts"
+    },
+    {
+      "id": "evidence/material-repo-opencode-plugins-gomr-ts",
+      "materialId": "material/repo/opencode-plugins-gomr-ts",
+      "type": "trace_summary",
+      "title": "Evidence for .opencode/plugins/gomr.ts",
+      "summary": "Selected because Connected through repo graph proximity and source importance.",
+      "source": ".opencode/plugins/gomr.ts"
+    },
+    {
+      "id": "evidence/material-repo-opencode-gomr-memory-index-ts",
+      "materialId": "material/repo/opencode-gomr-memory-index-ts",
+      "type": "trace_summary",
+      "title": "Evidence for .opencode/gomr/memory-index.ts",
+      "summary": "Selected because Connected through repo graph proximity and source importance.",
+      "source": ".opencode/gomr/memory-index.ts"
+    }
+  ],
+  "excluded": [
+    {
+      "id": "material/repo/opencode-skills-context-path-builder-skill-md",
+      "bundleId": "bundle/runtime-context",
+      "type": "file",
+      "title": "Context Path Builder",
+      "summary": "---",
+      "source": ".opencode/skills/context-path-builder/SKILL.md",
+      "score": 0.5066,
+      "reason": "Excluded because higher-scoring materials satisfy the current goal."
+    },
+    {
+      "id": "material/repo/opencode-agents-context-router-md",
+      "bundleId": "bundle/runtime-context",
+      "type": "file",
+      "title": "Context Router",
+      "summary": "---",
+      "source": ".opencode/agents/context-router.md",
+      "score": 0.4774,
+      "reason": "Excluded because higher-scoring materials satisfy the current goal."
+    },
+    {
+      "id": "material/repo/readme-md",
+      "bundleId": "bundle/repo-structure",
+      "type": "repo_node",
+      "title": "OpenCode GOMR",
+      "summary": "Goal-Oriented Memory Runtime (GOMR) is a project-level OpenCode extension for preserving agent state without full-context reloads. It creates a local `.orca-memory` store, builds goal-oriented context plans, captures tool traces, and export",
+      "source": "README.md",
+      "score": 0.4379,
+      "reason": "Excluded because higher-scoring materials satisfy the current goal."
+    },
+    {
+      "id": "material/repo/docs-superpowers-plans-2026-06-08-gomr-v0-2-md",
+      "bundleId": "bundle/spec-context",
+      "type": "repo_node",
+      "title": "GOMR v0.2 Implementation Plan",
+      "summary": "> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.",
+      "source": "docs/superpowers/plans/2026-06-08-gomr-v0.2.md",
+      "score": 0.4345,
+      "reason": "Excluded because higher-scoring materials satisfy the current goal."
+    },
+    {
+      "id": "material/repo/docs-superpowers-specs-2026-06-08-gomr-v0-2-design-md",
+      "bundleId": "bundle/spec-context",
+      "type": "repo_node",
+      "title": "GOMR v0.2 Design",
+      "summary": "Upgrade GOMR from a lightweight context helper into a persistent memory runtime with durable trace evidence, per-turn path snapshots, graph data, and a static visual timeline.",
+      "source": "docs/superpowers/specs/2026-06-08-gomr-v0.2-design.md",
+      "score": 0.3922,
+      "reason": "Excluded because higher-scoring materials satisfy the current goal."
+    },
+    {
+      "id": "material/repo/opencode-package-json",
+      "bundleId": "bundle/runtime-context",
+      "type": "file",
+      "title": ".opencode/package.json",
+      "summary": "{",
+      "source": ".opencode/package.json",
+      "score": 0.3793,
+      "reason": "Excluded because higher-scoring materials satisfy the current goal."
+    },
+    {
+      "id": "material/repo/opencode-gitignore",
+      "bundleId": "bundle/runtime-context",
+      "type": "file",
+      "title": ".opencode/.gitignore",
+      "summary": "node_modules",
+      "source": ".opencode/.gitignore",
+      "score": 0.3774,
+      "reason": "Excluded because higher-scoring materials satisfy the current goal."
+    },
+    {
+      "id": "material/repo/opencode-package-lock-json",
+      "bundleId": "bundle/runtime-context",
+      "type": "file",
+      "title": ".opencode/package-lock.json",
+      "summary": "{",
+      "source": ".opencode/package-lock.json",
+      "score": 0.1883,
+      "reason": "Excluded because higher-scoring materials satisfy the current goal."
+    }
+  ],
+  "scoreBreakdown": {
+    "material/repo/opencode-gomr-src-repo-graph-graphify-adapter-ts": {
+      "ppr": 0.961,
+      "lexical": 0.5,
+      "state": 0.7,
+      "freshness": 0.45,
+      "importance": 0.58,
+      "backtrack": 0.1,
+      "penalties": 0,
+      "score": 0.7165
+    },
+    "material/repo/opencode-gomr-src-context-context-builder-ts": {
+      "ppr": 1,
+      "lexical": 0,
+      "state": 0.7,
+      "freshness": 0.45,
+      "importance": 0.58,
+      "backtrack": 0.1,
+      "penalties": 0,
+      "score": 0.634
+    },
+    "material/repo/opencode-gomr-gomr-test-ts": {
+      "ppr": 0.9876,
+      "lexical": 0,
+      "state": 0.7,
+      "freshness": 0.45,
+      "importance": 0.58,
+      "backtrack": 0.1,
+      "penalties": 0,
+      "score": 0.6284
+    },
+    "material/repo/opencode-gomr-runtime-ts": {
+      "ppr": 0.9793,
+      "lexical": 0,
+      "state": 0.7,
+      "freshness": 0.45,
+      "importance": 0.58,
+      "backtrack": 0.1,
+      "penalties": 0,
+      "score": 0.6247
+    },
+    "material/repo/opencode-gomr-src-routing-goal-router-ts": {
+      "ppr": 0.9703,
+      "lexical": 0,
+      "state": 0.7,
+      "freshness": 0.45,
+      "importance": 0.58,
+      "backtrack": 0.1,
+      "penalties": 0,
+      "score": 0.6206
+    },
+    "material/repo/opencode-gomr-context-plan-ts": {
+      "ppr": 0.9698,
+      "lexical": 0,
+      "state": 0.7,
+      "freshness": 0.45,
+      "importance": 0.58,
+      "backtrack": 0.1,
+      "penalties": 0,
+      "score": 0.6204
+    },
+    "material/repo/opencode-gomr-src-repo-graph-static-repo-graph-ts": {
+      "ppr": 0.9583,
+      "lexical": 0,
+      "state": 0.7,
+      "freshness": 0.45,
+      "importance": 0.58,
+      "backtrack": 0.1,
+      "penalties": 0,
+      "score": 0.6152
+    },
+    "material/repo/opencode-gomr-build-context-state-ts": {
+      "ppr": 0.9572,
+      "lexical": 0,
+      "state": 0.7,
+      "freshness": 0.45,
+      "importance": 0.58,
+      "backtrack": 0.1,
+      "penalties": 0,
+      "score": 0.6147
+    },
+    "material/repo/opencode-gomr-capture-tool-trace-ts": {
+      "ppr": 0.9192,
+      "lexical": 0,
+      "state": 0.7,
+      "freshness": 0.45,
+      "importance": 0.58,
+      "backtrack": 0.4,
+      "penalties": 0,
+      "score": 0.6126
+    },
+    "material/repo/opencode-gomr-gomr-ts": {
+      "ppr": 0.9456,
+      "lexical": 0,
+      "state": 0.7,
+      "freshness": 0.45,
+      "importance": 0.58,
+      "backtrack": 0.1,
+      "penalties": 0,
+      "score": 0.6095
+    },
+    "material/repo/opencode-plugins-gomr-ts": {
+      "ppr": 0.9265,
+      "lexical": 0,
+      "state": 0.7,
+      "freshness": 0.45,
+      "importance": 0.58,
+      "backtrack": 0.1,
+      "penalties": 0,
+      "score": 0.6009
+    },
+    "material/repo/opencode-gomr-memory-index-ts": {
+      "ppr": 0.9248,
+      "lexical": 0,
+      "state": 0.7,
+      "freshness": 0.45,
+      "importance": 0.58,
+      "backtrack": 0.1,
+      "penalties": 0,
+      "score": 0.6002
+    }
+  }
+}

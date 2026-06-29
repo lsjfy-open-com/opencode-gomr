@@ -1,0 +1,696 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>GOMR Architecture Brief</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #0c111b;
+      --panel: #121a29;
+      --panel-2: #182235;
+      --line: #2a3952;
+      --text: #eef4ff;
+      --muted: #9dadc7;
+      --blue: #61b7ff;
+      --green: #7ee0ac;
+      --yellow: #f2ca65;
+      --red: #ff8b8b;
+      --ink: #0f1724;
+      --radius: 8px;
+      font-family: Inter, "Segoe UI", system-ui, -apple-system, sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background:
+        radial-gradient(circle at 15% 0%, rgba(97, 183, 255, .18), transparent 28%),
+        linear-gradient(180deg, #0d1421, var(--bg));
+      color: var(--text);
+      font: 14px/1.55 Inter, "Segoe UI", system-ui, -apple-system, sans-serif;
+    }
+
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      display: grid;
+      grid-template-columns: minmax(280px, 1fr) auto;
+      gap: 16px;
+      align-items: center;
+      padding: 16px 24px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(12, 17, 27, .92);
+      backdrop-filter: blur(10px);
+    }
+
+    h1, h2, h3, p { margin-top: 0; }
+    h1 { margin-bottom: 4px; font-size: 22px; letter-spacing: 0; }
+    h2 { font-size: 22px; margin-bottom: 10px; }
+    h3 { font-size: 15px; margin-bottom: 8px; }
+    p { color: #d7e1f4; }
+
+    .subtitle { margin: 0; color: var(--muted); }
+
+    nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: flex-end;
+    }
+
+    button {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--panel-2);
+      color: var(--text);
+      padding: 8px 10px;
+      cursor: pointer;
+      font: inherit;
+    }
+
+    button:hover, button.active {
+      border-color: var(--blue);
+      background: rgba(97, 183, 255, .15);
+    }
+
+    main {
+      max-width: 1320px;
+      margin: 0 auto;
+      padding: 18px;
+    }
+
+    .page {
+      display: none;
+      min-height: calc(100vh - 98px);
+      padding: 8px 0 28px;
+    }
+
+    .page.active { display: block; }
+
+    .lead {
+      max-width: 960px;
+      margin-bottom: 18px;
+      color: #dce7f8;
+      font-size: 16px;
+    }
+
+    .grid {
+      display: grid;
+      gap: 14px;
+    }
+
+    .cols-2 { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+    .cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+
+    .card {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: linear-gradient(180deg, rgba(24, 34, 53, .96), rgba(18, 26, 41, .98));
+      padding: 14px;
+      min-width: 0;
+    }
+
+    .card.compact { padding: 12px; }
+    .muted { color: var(--muted); }
+    .small { color: var(--muted); font-size: 12px; }
+    .strong { color: var(--text); font-weight: 700; }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border: 1px solid rgba(97, 183, 255, .32);
+      border-radius: 999px;
+      background: rgba(97, 183, 255, .10);
+      color: #d8ecff;
+      padding: 3px 8px;
+      font-size: 12px;
+      margin: 2px 4px 2px 0;
+      white-space: nowrap;
+    }
+
+    .flow {
+      position: relative;
+      display: grid;
+      grid-template-columns: repeat(5, minmax(150px, 1fr));
+      gap: 12px;
+      align-items: stretch;
+      margin: 14px 0;
+    }
+
+    .flow .step {
+      position: relative;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--panel);
+      padding: 12px;
+      min-height: 122px;
+    }
+
+    .flow .step:not(:last-child)::after {
+      content: "";
+      position: absolute;
+      right: -12px;
+      top: 50%;
+      width: 12px;
+      border-top: 2px solid var(--blue);
+    }
+
+    .num {
+      display: inline-grid;
+      place-items: center;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: var(--blue);
+      color: var(--ink);
+      font-weight: 800;
+      margin-bottom: 8px;
+    }
+
+    .diagram {
+      overflow: auto;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background:
+        linear-gradient(rgba(255,255,255,.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.035) 1px, transparent 1px),
+        rgba(15, 23, 36, .84);
+      background-size: 32px 32px;
+      padding: 16px;
+    }
+
+    .layers {
+      min-width: 960px;
+      display: grid;
+      grid-template-columns: 1fr 1.1fr 1.1fr 1.1fr 1fr;
+      gap: 14px;
+      align-items: center;
+    }
+
+    .layer {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: rgba(18, 26, 41, .94);
+      padding: 12px;
+      min-height: 170px;
+    }
+
+    .layer h3 { color: var(--blue); }
+    .layer ul { padding-left: 18px; margin: 8px 0 0; }
+    .layer li { margin: 6px 0; }
+
+    .arrow {
+      color: var(--blue);
+      font-weight: 900;
+      text-align: center;
+      align-self: center;
+      font-size: 20px;
+    }
+
+    .sequence {
+      display: grid;
+      grid-template-columns: 210px 1fr;
+      gap: 10px;
+    }
+
+    .actor {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 10px;
+      background: var(--panel-2);
+      font-weight: 700;
+    }
+
+    .event {
+      border-left: 3px solid var(--blue);
+      border-radius: 0 var(--radius) var(--radius) 0;
+      padding: 10px 12px;
+      background: rgba(97, 183, 255, .08);
+    }
+
+    .store-map {
+      display: grid;
+      grid-template-columns: 260px repeat(3, minmax(180px, 1fr));
+      gap: 10px;
+      align-items: stretch;
+      min-width: 940px;
+    }
+
+    .store-root {
+      grid-row: span 3;
+      border: 1px solid var(--blue);
+      background: rgba(97, 183, 255, .12);
+    }
+
+    .folder {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--panel);
+      padding: 12px;
+    }
+
+    .folder code, code {
+      color: #dff0ff;
+      background: rgba(255,255,255,.07);
+      border-radius: 5px;
+      padding: 1px 5px;
+      font-family: Consolas, "SFMono-Regular", monospace;
+      font-size: .92em;
+    }
+
+    .formula {
+      display: grid;
+      gap: 10px;
+      grid-template-columns: 1fr 1fr;
+      margin-top: 10px;
+    }
+
+    .formula .card { border-left: 4px solid var(--green); }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      overflow: hidden;
+      border-radius: var(--radius);
+      border: 1px solid var(--line);
+    }
+
+    th, td {
+      border-bottom: 1px solid var(--line);
+      padding: 10px;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      color: var(--text);
+      background: rgba(97, 183, 255, .11);
+    }
+
+    tr:last-child td { border-bottom: 0; }
+
+    .risk.good { border-left: 4px solid var(--green); }
+    .risk.watch { border-left: 4px solid var(--yellow); }
+    .risk.bad { border-left: 4px solid var(--red); }
+
+    .mini-dag {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 12px;
+      min-width: 920px;
+      align-items: start;
+    }
+
+    .dag-node {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--panel);
+      padding: 10px;
+      min-height: 84px;
+    }
+
+    .dag-node.primary { border-color: var(--blue); }
+    .dag-node.good { border-color: var(--green); }
+    .dag-node.warn { border-color: var(--yellow); }
+
+    .dag-node .title {
+      font-weight: 800;
+      margin-bottom: 4px;
+    }
+
+    .footnote {
+      margin-top: 16px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    @media (max-width: 980px) {
+      header { grid-template-columns: 1fr; }
+      nav { justify-content: flex-start; }
+      .cols-2, .cols-3, .cols-4, .formula { grid-template-columns: 1fr; }
+      .flow { grid-template-columns: 1fr; }
+      .flow .step:not(:last-child)::after { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <h1>GOMR 当前架构讲解</h1>
+      <p class="subtitle">Goal-Oriented Memory Runtime: 用目标路由的 rebuilt context 替代累积上下文。</p>
+    </div>
+    <nav aria-label="Architecture pages">
+      <button class="active" data-page="overview">1. 总览</button>
+      <button data-page="replace">2. 替换链路</button>
+      <button data-page="memory">3. Memory Store</button>
+      <button data-page="routing">4. 路由算法</button>
+      <button data-page="analysis">5. 分析与风险</button>
+    </nav>
+  </header>
+
+  <main>
+    <section id="overview" class="page active">
+      <h2>1. 总体架构：GOMR 是 OpenCode 的本地上下文运行时</h2>
+      <p class="lead">当前设计不是 GraphRAG，也不是自动长期记忆演化系统。它更像一个本地、确定性的上下文控制层：记录行动状态，按当前目标选择材料，生成 rebuilt context，并在默认 replace 模式下替换 provider 请求里的旧对话历史。</p>
+
+      <div class="diagram">
+        <div class="layers">
+          <div class="layer">
+            <h3>OpenCode Plugin</h3>
+            <ul>
+              <li><code>GomrPlugin</code></li>
+              <li>监听 chat transform</li>
+              <li>监听 tool after</li>
+              <li>包装 provider fetch</li>
+            </ul>
+          </div>
+          <div class="layer">
+            <h3>Runtime Core</h3>
+            <ul>
+              <li><code>initMemory</code></li>
+              <li><code>contextPlan</code></li>
+              <li><code>captureToolTrace</code></li>
+              <li><code>exportVisual</code></li>
+            </ul>
+          </div>
+          <div class="layer">
+            <h3>Repo Graph</h3>
+            <ul>
+              <li><code>static-repo-graph.json</code></li>
+              <li>文本文件扫描</li>
+              <li>有限 fan-out 边</li>
+              <li>Graphify 可导入</li>
+            </ul>
+          </div>
+          <div class="layer">
+            <h3>Goal Router</h3>
+            <ul>
+              <li><code>goal-conditioned-ppr</code></li>
+              <li>无 LLM 路由</li>
+              <li>bundle/material/evidence</li>
+              <li>显式 excluded</li>
+            </ul>
+          </div>
+          <div class="layer">
+            <h3>Context Replace</h3>
+            <ul>
+              <li><code>context/current.md</code></li>
+              <li><code>last-model-context.md</code></li>
+              <li>保留 active turn</li>
+              <li>移除旧 raw history</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid cols-3">
+        <div class="card">
+          <h3>核心原则</h3>
+          <p>历史不丢，但不默认全部发给模型。完整 trace、ledger、path、repo graph 保存在本地；模型收到的是当前目标相关的 rebuilt context。</p>
+          <span class="tag">local-first</span><span class="tag">replace by default</span>
+        </div>
+        <div class="card">
+          <h3>当前边界</h3>
+          <p>路由是确定性的，不调用 LLM 做选择；token 统计是基于可测文本与 telemetry 的估计，不等于 provider 内部最终 tokenizer 的绝对真值。</p>
+          <span class="tag">deterministic</span><span class="tag">observable estimate</span>
+        </div>
+        <div class="card">
+          <h3>用户价值</h3>
+          <p>长任务里，OpenCode 不再持续背着早期全部对话和工具输出，而是用目标、证据和路径快照来重建最小充分上下文。</p>
+          <span class="tag">smaller prompt</span><span class="tag">state continuity</span>
+        </div>
+      </div>
+    </section>
+
+    <section id="replace" class="page">
+      <h2>2. 请求替换链路：从用户目标到 provider payload</h2>
+      <p class="lead">默认模式是 <code>GOMR_MODE=replace</code>。它不会再把 GOMR 信息“额外注入”到原始上下文后面，而是在 provider 请求层把旧消息历史替换成 rebuilt context 加最新用户轮次。</p>
+
+      <div class="flow">
+        <div class="step">
+          <span class="num">1</span>
+          <h3>捕获当前目标</h3>
+          <p>插件从最新 user message、session title、prompt 等位置提取目标，并过滤掉泛化的 <code>current OpenCode task</code>。</p>
+        </div>
+        <div class="step">
+          <span class="num">2</span>
+          <h3>刷新 context plan</h3>
+          <p><code>contextPlan(project, goal)</code> 写入 turn snapshot、latest path、ledger 当前目标，并触发 route。</p>
+        </div>
+        <div class="step">
+          <span class="num">3</span>
+          <h3>构建 rebuilt context</h3>
+          <p><code>buildContextForRequestGoal</code> 生成带 <code>raw_context_replaced: true</code> 的 Markdown。</p>
+        </div>
+        <div class="step">
+          <span class="num">4</span>
+          <h3>重写 provider messages</h3>
+          <p>保留原始 system 和 tools，移除旧 user/assistant/tool 历史，只附加 GOMR context 与 active turn。</p>
+        </div>
+        <div class="step">
+          <span class="num">5</span>
+          <h3>工具执行后沉淀证据</h3>
+          <p><code>tool.execute.after</code> 记录 tool trace、ledger、context state，并刷新 visual。</p>
+        </div>
+      </div>
+
+      <div class="grid cols-2">
+        <div class="card">
+          <h3>Replace 前</h3>
+          <div class="sequence">
+            <div class="actor">Provider messages</div>
+            <div class="event">system prompts + long prior user/assistant/tool history + latest user</div>
+            <div class="actor">风险</div>
+            <div class="event">上下文随轮次增长；早期工具输出和无关讨论可能挤占窗口。</div>
+          </div>
+        </div>
+        <div class="card">
+          <h3>Replace 后</h3>
+          <div class="sequence">
+            <div class="actor">Provider messages</div>
+            <div class="event">original system prompts + <code># GOMR Rebuilt Context</code> + latest user active turn</div>
+            <div class="actor">效果</div>
+            <div class="event">上下文大小由路由材料决定；历史作为本地证据保留，可回溯但不全量发送。</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>关键代码位置</h3>
+        <p><code>.opencode/plugins/gomr.ts</code> 中的 <code>installGomrReplacementFetch</code> 包装全局 fetch；<code>rewriteOpenCodeRequestForGomr</code> 判断 JSON model request 是否包含 <code>messages</code> 和 <code>tools</code>，然后执行替换。</p>
+      </div>
+    </section>
+
+    <section id="memory" class="page">
+      <h2>3. Memory Store：本地事实层与可回溯证据</h2>
+      <p class="lead"><code>.orca-memory</code> 是 GOMR 的持久化边界。它不是要把所有内容都变成模型输入，而是把行动状态、路由结果、证据和 debug 输出保存下来，让下一轮可以重建。</p>
+
+      <div class="diagram">
+        <div class="store-map">
+          <div class="folder store-root">
+            <h3><code>.orca-memory/</code></h3>
+            <p>每个项目本地生成。不要全量加载；按目标和 ledger 选择。</p>
+          </div>
+          <div class="folder">
+            <h3><code>cache/</code></h3>
+            <p>execution ledger、context state、dirty files、session goals。</p>
+          </div>
+          <div class="folder">
+            <h3><code>traces/</code></h3>
+            <p>按 session 保存 tool events，含 target、summary、digest、output length。</p>
+          </div>
+          <div class="folder">
+            <h3><code>paths/</code></h3>
+            <p>turn snapshots、latest、current-route、每个 goal 的 routed plan。</p>
+          </div>
+          <div class="folder">
+            <h3><code>graph/</code></h3>
+            <p>static repo graph、legacy visual graph nodes/edges/timeline。</p>
+          </div>
+          <div class="folder">
+            <h3><code>context/</code></h3>
+            <p><code>current.md</code> 和 <code>&lt;goal-id&gt;.md</code>，是真正替换时使用的 rebuilt context。</p>
+          </div>
+          <div class="folder">
+            <h3><code>debug/</code></h3>
+            <p><code>last-model-context.md</code> 用于验证模型实际收到的 GOMR context。</p>
+          </div>
+          <div class="folder">
+            <h3><code>visual/</code></h3>
+            <p>静态 HTML UI 与 <code>graph-data.json</code>，默认显示 compact Bundle DAG。</p>
+          </div>
+          <div class="folder">
+            <h3>seed memory</h3>
+            <p><code>profile.md</code>、<code>architecture.md</code>、<code>goals.md</code>、modules docs。</p>
+          </div>
+        </div>
+      </div>
+
+      <table>
+        <thead>
+          <tr><th>产物</th><th>由谁写入</th><th>用途</th><th>是否发给模型</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>cache/execution-ledger.md</code></td><td>trace capture / context state</td><td>行动连续性：读过什么、跑过什么、失败过什么。</td><td>默认不全量发送，只作为重建依据。</td></tr>
+          <tr><td><code>paths/current-route.json</code></td><td><code>routeGoal</code></td><td>当前目标的 bundles、materials、evidence、score breakdown。</td><td>不直接发送，渲染成 context。</td></tr>
+          <tr><td><code>context/current.md</code></td><td><code>context-builder.ts</code></td><td>replace 模式的核心输入。</td><td>是，作为 system message 发送。</td></tr>
+          <tr><td><code>debug/last-model-context.md</code></td><td><code>context-builder.ts</code></td><td>排查“到底发了什么”。</td><td>不是直接产物，但应等同于发送文本。</td></tr>
+          <tr><td><code>visual/graph-data.json</code></td><td><code>exportVisual</code></td><td>展示与分析，不应成为模型上下文。</td><td>否。</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="routing" class="page">
+      <h2>4. 路由算法：静态图 + Goal-conditioned PPR + Bundle DAG</h2>
+      <p class="lead">当前路由完全确定性：先构建 bounded static repo graph，再根据目标词、PPR、状态、新鲜度、重要性、backtrack 和 penalty 打分，最后取前 12 个材料并组合成 context bundles。</p>
+
+      <div class="grid cols-2">
+        <div class="card">
+          <h3>Static Repo Graph</h3>
+          <p>扫描 <code>README</code>、<code>docs</code>、<code>src</code>、<code>tests</code>、<code>.opencode</code>、<code>.codex</code>、<code>package.json</code> 等文本材料。</p>
+          <p>当前已经加了保护：跳过 binary assets / lockfiles，只读前 64KB，mention 边每节点最多 8 条，避免大项目 OOM。</p>
+          <span class="tag">bounded fan-out</span><span class="tag">text only</span>
+        </div>
+        <div class="card">
+          <h3>Goal Router</h3>
+          <p><code>routeGoal</code> 读取 graph，做 personalized PageRank 与本地评分；<code>项目理解</code> / <code>project understanding</code> 这类 overview 目标会优先 README、docs、package 等概览材料，并惩罚 tests。</p>
+          <span class="tag">no LLM routing</span><span class="tag">overview boost</span>
+        </div>
+      </div>
+
+      <div class="formula">
+        <div class="card">
+          <h3>一般目标评分</h3>
+          <p><code>score = .45*ppr + .20*lexical + .15*state + .10*freshness + .05*importance + .05*backtrack - penalties</code></p>
+          <p class="small">适合“实现 adapter”“修测试”“改 runtime”这类代码工作目标。</p>
+        </div>
+        <div class="card">
+          <h3>项目理解目标评分</h3>
+          <p><code>score = .55*overview/lexical + .20*importance + .10*freshness + .05*state + .10*ppr - penalties</code></p>
+          <p class="small">用于避免大项目里测试文件因图结构传播而压过 README/docs。</p>
+        </div>
+      </div>
+
+      <div class="diagram">
+        <div class="mini-dag">
+          <div class="dag-node primary">
+            <div class="title">Goal</div>
+            <div class="small">用户最新目标</div>
+          </div>
+          <div class="dag-node">
+            <div class="title">Bundles</div>
+            <div class="small">repo structure、runtime context、workspace state、task context...</div>
+          </div>
+          <div class="dag-node good">
+            <div class="title">Materials</div>
+            <div class="small">前 12 个 selected materials；每 bundle 默认显示 3 个，其余折叠。</div>
+          </div>
+          <div class="dag-node warn">
+            <div class="title">Evidence</div>
+            <div class="small">tool trace、digest、test result、trace summary。</div>
+          </div>
+          <div class="dag-node primary">
+            <div class="title">Output</div>
+            <div class="small"><code>context/current.md</code></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="analysis" class="page">
+      <h2>5. 设计分析：优点、风险和下一步</h2>
+      <p class="lead">当前架构已经从“把 GOMR 文本注入上下文”转向“真正替换原始历史”。这解决了上下文膨胀的方向性问题，但后续质量取决于路由、观测和可验证性。</p>
+
+      <div class="grid cols-3">
+        <div class="card risk good">
+          <h3>已经做对的部分</h3>
+          <p>replace 是正确主线：如果 rebuilt 只是额外添加到原始历史上，GOMR 就不会压缩上下文。现在的 provider rewrite 已经从根上避免了这个问题。</p>
+        </div>
+        <div class="card risk good">
+          <h3>可回溯性不错</h3>
+          <p>ledger、trace、route、debug context 都落盘。出问题时可以问：目标是什么，选了什么，排除了什么，最终发送了什么。</p>
+        </div>
+        <div class="card risk watch">
+          <h3>路由质量仍是核心风险</h3>
+          <p>确定性路由稳定、便宜，但语义理解浅。复杂项目里，“看起来相关”的文件仍可能被选错，需要更多语义结构或显式任务边。</p>
+        </div>
+      </div>
+
+      <table>
+        <thead>
+          <tr><th>维度</th><th>当前状态</th><th>主要风险</th><th>建议</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Context 压缩</td>
+            <td>默认 replace，发送 rebuilt context + active turn。</td>
+            <td>active turn 中如果工具结果过大，仍可能变大。</td>
+            <td>继续做 active turn tool-result 摘要或大输出替换。</td>
+          </tr>
+          <tr>
+            <td>Token 统计</td>
+            <td>基于可测文本和 telemetry 的估计。</td>
+            <td>provider tokenizer 与 OpenCode 内部包装仍可能造成偏差。</td>
+            <td>保留 telemetry import，并把 provider observed prompt tokens 与 GOMR estimate 分开展示。</td>
+          </tr>
+          <tr>
+            <td>Repo Graph</td>
+            <td>bounded static graph，跳过 assets/lockfiles。</td>
+            <td>仅靠 tags/mentions，缺少真实 AST dependency。</td>
+            <td>Graphify adapter 或语言级解析器可作为增强输入。</td>
+          </tr>
+          <tr>
+            <td>Visual</td>
+            <td>默认 compact Bundle DAG，full graph 在 debug。</td>
+            <td>如果 graph-data 本身过大，浏览器仍要加载。</td>
+            <td>后续可拆分 data：compact data 默认加载，debug graph 懒加载。</td>
+          </tr>
+          <tr>
+            <td>OpenCode 集成</td>
+            <td>插件 hook + fetch wrapper。</td>
+            <td>依赖 provider request shape；OpenCode 更新可能破坏。</td>
+            <td>增加 request rewrite fixture 测试与版本兼容探测。</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="grid cols-2">
+        <div class="card">
+          <h3>推荐下一阶段</h3>
+          <p>把 GOMR 从“可用的 deterministic runtime”推进到“可校准的 context controller”：每次请求都产出一个 compact debug record，包含 raw estimate、rebuilt estimate、provider observed prompt tokens、selected bundles、hidden/excluded counts。</p>
+        </div>
+        <div class="card">
+          <h3>一句话架构判断</h3>
+          <p>当前架构方向正确：它把上下文管理从“对话越来越长”改成“目标驱动的本地证据重建”。真正要继续打磨的是路由质量、观测闭环、以及大项目下的懒加载与语义边。</p>
+        </div>
+      </div>
+
+      <p class="footnote">Generated for the current GOMR codebase. Source anchors: <code>.opencode/plugins/gomr.ts</code>, <code>.opencode/gomr/runtime.ts</code>, <code>src/routing/goal-router.ts</code>, <code>src/repo-graph/static-repo-graph.ts</code>, <code>src/context/context-builder.ts</code>.</p>
+    </section>
+  </main>
+
+  <script>
+    const buttons = Array.from(document.querySelectorAll("nav button"));
+    const pages = Array.from(document.querySelectorAll(".page"));
+
+    function showPage(id) {
+      for (const button of buttons) button.classList.toggle("active", button.dataset.page === id);
+      for (const page of pages) page.classList.toggle("active", page.id === id);
+      location.hash = id;
+    }
+
+    for (const button of buttons) {
+      button.addEventListener("click", () => showPage(button.dataset.page));
+    }
+
+    const initial = location.hash.replace("#", "");
+    if (initial && document.getElementById(initial)) showPage(initial);
+  </script>
+</body>
+</html>

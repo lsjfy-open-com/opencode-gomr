@@ -1,0 +1,199 @@
+{
+  "version": 2,
+  "generated_at": "2026-06-10T02:03:55.791Z",
+  "project_root": ".",
+  "total_size": 199946,
+  "memory_nodes": [
+    {
+      "id": "memory/profile",
+      "path": ".orca-memory/profile.md",
+      "type": "profile",
+      "title": "Project Profile",
+      "summary": "Identifies the project and the GOMR runtime role."
+    },
+    {
+      "id": "memory/architecture",
+      "path": ".orca-memory/architecture.md",
+      "type": "architecture",
+      "title": "Architecture",
+      "summary": "Summarizes detected workspace areas used for context planning."
+    },
+    {
+      "id": "memory/goals",
+      "path": ".orca-memory/goals.md",
+      "type": "profile",
+      "title": "Goals",
+      "summary": "Tracks GOMR continuity, context sufficiency, and traceability goals."
+    },
+    {
+      "id": "memory/modules/gomr-runtime",
+      "path": ".orca-memory/modules/gomr-runtime.md",
+      "type": "module",
+      "title": "GOMR Runtime",
+      "summary": "Coordinates memory initialization, traces, ledgers, context paths, graph data, and compaction context."
+    },
+    {
+      "id": "memory/modules/context-router",
+      "path": ".orca-memory/modules/context-router.md",
+      "type": "module",
+      "title": "Context Router",
+      "summary": "Selects minimal sufficient context based on the current goal, index, ledger, traces, and previous paths."
+    },
+    {
+      "id": "memory/modules/tool-trace",
+      "path": ".orca-memory/modules/tool-trace.md",
+      "type": "module",
+      "title": "Tool Trace",
+      "summary": "Persists selected tool evidence with stable identity, target, status, digest, and relevance reason."
+    },
+    {
+      "id": "memory/modules/visualization",
+      "path": ".orca-memory/modules/visualization.md",
+      "type": "module",
+      "title": "Visualization",
+      "summary": "Exports a static timeline and path graph that explains context path evolution."
+    },
+    {
+      "id": "memory/decisions/0001-gomr-v0.2-memory-model",
+      "path": ".orca-memory/decisions/0001-gomr-v0.2-memory-model.md",
+      "type": "decision",
+      "title": "GOMR v0.2 Memory Model",
+      "summary": "GOMR stores durable evidence locally while sending only selected context to the model."
+    }
+  ],
+  "files": [
+    {
+      "path": ".opencode/.gitignore",
+      "kind": "project",
+      "summary": "node_modules",
+      "size": 63,
+      "updated_at": "2026-06-08T11:05:08.752Z"
+    },
+    {
+      "path": ".opencode/agents/context-router.md",
+      "kind": "project",
+      "summary": "---",
+      "size": 902,
+      "updated_at": "2026-06-08T06:50:51.892Z"
+    },
+    {
+      "path": ".opencode/gomr/build-context-state.ts",
+      "kind": "source",
+      "summary": "import { buildContextState } from \"./runtime.ts\"",
+      "size": 241,
+      "updated_at": "2026-06-08T06:50:51.892Z"
+    },
+    {
+      "path": ".opencode/gomr/capture-tool-trace.ts",
+      "kind": "source",
+      "summary": "import { captureToolTrace } from \"./runtime.ts\"",
+      "size": 445,
+      "updated_at": "2026-06-08T06:50:51.892Z"
+    },
+    {
+      "path": ".opencode/gomr/context-plan.ts",
+      "kind": "source",
+      "summary": "import { contextPlan } from \"./runtime.ts\"",
+      "size": 282,
+      "updated_at": "2026-06-08T06:50:51.892Z"
+    },
+    {
+      "path": ".opencode/gomr/gomr.test.ts",
+      "kind": "test",
+      "summary": "import assert from \"node:assert/strict\"",
+      "size": 52113,
+      "updated_at": "2026-06-10T01:36:11.798Z"
+    },
+    {
+      "path": ".opencode/gomr/gomr.ts",
+      "kind": "source",
+      "summary": "import http from \"node:http\"",
+      "size": 5808,
+      "updated_at": "2026-06-10T01:31:25.838Z"
+    },
+    {
+      "path": ".opencode/gomr/memory-index.ts",
+      "kind": "source",
+      "summary": "import { initMemory } from \"./runtime.ts\"",
+      "size": 217,
+      "updated_at": "2026-06-08T06:50:51.892Z"
+    },
+    {
+      "path": ".opencode/gomr/runtime.ts",
+      "kind": "source",
+      "summary": "import { createHash } from \"node:crypto\"",
+      "size": 81643,
+      "updated_at": "2026-06-10T01:30:34.166Z"
+    },
+    {
+      "path": ".opencode/gomr/src/context/context-builder.ts",
+      "kind": "source",
+      "summary": "import fs from \"node:fs/promises\"",
+      "size": 3430,
+      "updated_at": "2026-06-10T01:18:44.576Z"
+    },
+    {
+      "path": ".opencode/gomr/src/repo-graph/graphify-adapter.ts",
+      "kind": "source",
+      "summary": "import fs from \"node:fs/promises\"",
+      "size": 2037,
+      "updated_at": "2026-06-10T01:16:39.000Z"
+    },
+    {
+      "path": ".opencode/gomr/src/repo-graph/static-repo-graph.ts",
+      "kind": "source",
+      "summary": "import fs from \"node:fs/promises\"",
+      "size": 6486,
+      "updated_at": "2026-06-10T01:15:55.337Z"
+    },
+    {
+      "path": ".opencode/gomr/src/routing/goal-router.ts",
+      "kind": "source",
+      "summary": "import fs from \"node:fs/promises\"",
+      "size": 9193,
+      "updated_at": "2026-06-10T01:20:27.812Z"
+    },
+    {
+      "path": ".opencode/package-lock.json",
+      "kind": "project",
+      "summary": "{",
+      "size": 13855,
+      "updated_at": "2026-06-08T11:05:23.789Z"
+    },
+    {
+      "path": ".opencode/package.json",
+      "kind": "project",
+      "summary": "Node package manifest",
+      "size": 65,
+      "updated_at": "2026-06-08T11:05:23.783Z"
+    },
+    {
+      "path": ".opencode/plugins/gomr.ts",
+      "kind": "source",
+      "summary": "import {",
+      "size": 7237,
+      "updated_at": "2026-06-10T01:32:04.786Z"
+    },
+    {
+      "path": ".opencode/skills/context-path-builder/SKILL.md",
+      "kind": "project",
+      "summary": "---",
+      "size": 1077,
+      "updated_at": "2026-06-08T06:50:51.893Z"
+    },
+    {
+      "path": "AGENTS.md",
+      "kind": "project",
+      "summary": "Agent operating instructions",
+      "size": 568,
+      "updated_at": "2026-06-08T06:50:51.893Z"
+    },
+    {
+      "path": "README.md",
+      "kind": "project",
+      "summary": "Project documentation",
+      "size": 14284,
+      "updated_at": "2026-06-10T01:44:18.750Z"
+    }
+  ]
+}

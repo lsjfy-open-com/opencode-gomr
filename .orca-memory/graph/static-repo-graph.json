@@ -1,0 +1,2905 @@
+{
+  "version": 1,
+  "generated_at": "2026-06-10T01:51:20.665Z",
+  "project_root": ".",
+  "nodes": [
+    {
+      "id": "repo/root",
+      "type": "platform",
+      "title": ".",
+      "summary": "Repository root and static graph anchor.",
+      "source": ".",
+      "tags": [
+        "repo",
+        "root"
+      ],
+      "importance": 1
+    },
+    {
+      "id": "repo/opencode-gitignore",
+      "type": "module",
+      "title": ".opencode/.gitignore",
+      "summary": "node_modules",
+      "source": ".opencode/.gitignore",
+      "tags": [
+        "opencode",
+        "gitignore",
+        "node_modules",
+        "package",
+        "json",
+        "package-lock",
+        "bun",
+        "lock"
+      ],
+      "importance": 0.58
+    },
+    {
+      "id": "repo/opencode-agents-context-router-md",
+      "type": "module",
+      "title": "Context Router",
+      "summary": "---",
+      "source": ".opencode/agents/context-router.md",
+      "tags": [
+        "opencode",
+        "agents",
+        "context",
+        "router",
+        "md",
+        "name",
+        "context-router",
+        "description",
+        "select",
+        "minimal",
+        "sufficient",
+        "gomr",
+        "for",
+        "the",
+        "active",
+        "goal",
+        "you",
+        "route",
+        "current"
+      ],
+      "importance": 0.58
+    },
+    {
+      "id": "repo/opencode-gomr-build-context-state-ts",
+      "type": "module",
+      "title": ".opencode/gomr/build-context-state.ts",
+      "summary": "import { buildContextState } from \"./runtime.ts\"",
+      "source": ".opencode/gomr/build-context-state.ts",
+      "tags": [
+        "opencode",
+        "gomr",
+        "build",
+        "context",
+        "state",
+        "ts",
+        "import",
+        "buildcontextstate",
+        "from",
+        "runtime",
+        "process",
+        "argv",
+        "console",
+        "error",
+        "usage",
+        "build-context-state",
+        "project",
+        "exit",
+        "log"
+      ],
+      "importance": 0.58
+    },
+    {
+      "id": "repo/opencode-gomr-capture-tool-trace-ts",
+      "type": "module",
+      "title": ".opencode/gomr/capture-tool-trace.ts",
+      "summary": "import { captureToolTrace } from \"./runtime.ts\"",
+      "source": ".opencode/gomr/capture-tool-trace.ts",
+      "tags": [
+        "opencode",
+        "gomr",
+        "capture",
+        "tool",
+        "trace",
+        "ts",
+        "import",
+        "capturetooltrace",
+        "from",
+        "runtime",
+        "process",
+        "argv",
+        "console",
+        "error",
+        "usage",
+        "capture-tool-trace",
+        "project",
+        "target",
+        "status"
+      ],
+      "importance": 0.58
+    },
+    {
+      "id": "repo/opencode-gomr-context-plan-ts",
+      "type": "module",
+      "title": ".opencode/gomr/context-plan.ts",
+      "summary": "import { contextPlan } from \"./runtime.ts\"",
+      "source": ".opencode/gomr/context-plan.ts",
+      "tags": [
+        "opencode",
+        "gomr",
+        "context",
+        "plan",
+        "ts",
+        "import",
+        "contextplan",
+        "from",
+        "runtime",
+        "process",
+        "argv",
+        "console",
+        "error",
+        "usage",
+        "context-plan",
+        "project",
+        "goal",
+        "exit",
+        "log"
+      ],
+      "importance": 0.58
+    },
+    {
+      "id": "repo/opencode-gomr-gomr-test-ts",
+      "type": "module",
+      "title": ".opencode/gomr/gomr.test.ts",
+      "summary": "import assert from \"node:assert/strict\"",
+      "source": ".opencode/gomr/gomr.test.ts",
+      "tags": [
+        "opencode",
+        "gomr",
+        "test",
+        "ts",
+        "import",
+        "assert",
+        "from",
+        "node",
+        "strict",
+        "execfile",
+        "child_process",
+        "promises",
+        "path",
+        "aftereach",
+        "promisify",
+        "util",
+        "runtime",
+        "const",
+        "tempprojects"
+      ],
+      "importance": 0.58
+    },
+    {
+      "id": "repo/opencode-gomr-gomr-ts",
+      "type": "module",
+      "title": ".opencode/gomr/gomr.ts",
+      "summary": "import http from \"node:http\"",
+      "source": ".opencode/gomr/gomr.ts",
+      "tags": [
+        "opencode",
+        "gomr",
+        "ts",
+        "import",
+        "http",
+        "from",
+        "node",
+        "path",
+        "buildcontextstate",
+        "buildcontextforgoal",
+        "buildrepograph",
+        "buildgraphdata",
+        "capturetooltrace",
+        "contextplan",
+        "exportvisual",
+        "importgraphifyrepograph",
+        "importopencodetelemetry",
+        "importopencodesessiongoals",
+        "initmemory"
+      ],
+      "importance": 0.58
+    },
+    {
+      "id": "repo/opencode-gomr-memory-index-ts",
+      "type": "module",
+      "title": ".opencode/gomr/memory-index.ts",
+      "summary": "import { initMemory } from \"./runtime.ts\"",
+      "source": ".opencode/gomr/memory-index.ts",
+      "tags": [
+        "opencode",
+        "gomr",
+        "memory",
+        "index",
+        "ts",
+        "import",
+        "initmemory",
+        "from",
+        "runtime",
+        "process",
+        "argv",
+        "init",
+        "console",
+        "error",
+        "usage",
+        "memory-index",
+        "project",
+        "exit",
+        "await"
+      ],
+      "importance": 0.58
+    },
+    {
+      "id": "repo/opencode-gomr-runtime-ts",
+      "type": "module",
+      "title": ".opencode/gomr/runtime.ts",
+      "summary": "import { createHash } from \"node:crypto\"",
+      "source": ".opencode/gomr/runtime.ts",
+      "tags": [
+        "opencode",
+        "gomr",
+        "runtime",
+        "ts",
+        "import",
+        "createhash",
+        "from",
+        "node",
+        "crypto",
+        "execfile",
+        "child_process",
+        "promises",
+        "path",
+        "promisify",
+        "util",
+        "buildrebuiltcontext",
+        "buildrebuiltcontextforgoal",
+        "readcurrentcontext",
+        "src"
+      ],
+      "importance": 0.58
+    },
+    {
+      "id": "repo/opencode-gomr-src-context-context-builder-ts",
+      "type": "module",
+      "title": ".opencode/gomr/src/context/context-builder.ts",
+      "summary": "import fs from \"node:fs/promises\"",
+      "source": ".opencode/gomr/src/context/context-builder.ts",
+      "tags": [
+        "opencode",
+        "gomr",
+        "src",
+        "context",
+        "builder",
+        "ts",
+        "import",
+        "from",
+        "node",
+        "promises",
+        "path",
+        "readroutedplan",
+        "routegoal",
+        "slug",
+        "type",
+        "routedcontextplan",
+        "routing",
+        "goal-router",
+        "export"
+      ],
+      "importance": 0.58
+    },
+    {
+      "id": "repo/opencode-gomr-src-repo-graph-graphify-adapter-ts",
+      "type": "module",
+      "title": ".opencode/gomr/src/repo-graph/graphify-adapter.ts",
+      "summary": "import fs from \"node:fs/promises\"",
+      "source": ".opencode/gomr/src/repo-graph/graphify-adapter.ts",
+      "tags": [
+        "opencode",
+        "gomr",
+        "src",
+        "repo",
+        "graph",
+        "graphify",
+        "adapter",
+        "ts",
+        "import",
+        "from",
+        "node",
+        "promises",
+        "path",
+        "type",
+        "staticrepograph",
+        "static-repo-graph",
+        "slug",
+        "export",
+        "async"
+      ],
+      "importance": 0.58
+    },
+    {
+      "id": "repo/opencode-gomr-src-repo-graph-static-repo-graph-ts",
+      "type": "module",
+      "title": ".opencode/gomr/src/repo-graph/static-repo-graph.ts",
+      "summary": "import fs from \"node:fs/promises\"",
+      "source": ".opencode/gomr/src/repo-graph/static-repo-graph.ts",
+      "tags": [
+        "opencode",
+        "gomr",
+        "src",
+        "repo",
+        "graph",
+        "static",
+        "ts",
+        "import",
+        "from",
+        "node",
+        "promises",
+        "path",
+        "export",
+        "type",
+        "reponodetype",
+        "file",
+        "doc",
+        "module",
+        "concept"
+      ],
+      "importance": 0.58
+    },
+    {
+      "id": "repo/opencode-gomr-src-routing-goal-router-ts",
+      "type": "module",
+      "title": ".opencode/gomr/src/routing/goal-router.ts",
+      "summary": "import fs from \"node:fs/promises\"",
+      "source": ".opencode/gomr/src/routing/goal-router.ts",
+      "tags": [
+        "opencode",
+        "gomr",
+        "src",
+        "routing",
+        "goal",
+        "router",
+        "ts",
+        "import",
+        "from",
+        "node",
+        "promises",
+        "path",
+        "readstaticrepograph",
+        "slug",
+        "type",
+        "reponode",
+        "staticrepograph",
+        "repo-graph",
+        "static-repo-graph"
+      ],
+      "importance": 0.58
+    },
+    {
+      "id": "repo/opencode-package-lock-json",
+      "type": "module",
+      "title": ".opencode/package-lock.json",
+      "summary": "{",
+      "source": ".opencode/package-lock.json",
+      "tags": [
+        "opencode",
+        "package",
+        "lock",
+        "json",
+        "name",
+        "lockfileversion",
+        "requires",
+        "true",
+        "packages",
+        "dependencies",
+        "opencode-ai",
+        "plugin",
+        "node_modules",
+        "msgpackr-extract",
+        "msgpackr-extract-darwin-arm64",
+        "version",
+        "resolved",
+        "https",
+        "registry"
+      ],
+      "importance": 0.58
+    },
+    {
+      "id": "repo/opencode-package-json",
+      "type": "module",
+      "title": ".opencode/package.json",
+      "summary": "{",
+      "source": ".opencode/package.json",
+      "tags": [
+        "opencode",
+        "package",
+        "json",
+        "dependencies",
+        "opencode-ai",
+        "plugin"
+      ],
+      "importance": 0.58
+    },
+    {
+      "id": "repo/opencode-plugins-gomr-ts",
+      "type": "module",
+      "title": ".opencode/plugins/gomr.ts",
+      "summary": "import {",
+      "source": ".opencode/plugins/gomr.ts",
+      "tags": [
+        "opencode",
+        "plugins",
+        "gomr",
+        "ts",
+        "import",
+        "buildcontextstate",
+        "buildcontextforrequestgoal",
+        "capturetooltrace",
+        "compactingcontext",
+        "contextplan",
+        "exportvisual",
+        "gomrsystemcontexttext",
+        "initmemory",
+        "readcurrentgoal",
+        "readcurrentplan",
+        "from",
+        "runtime",
+        "export",
+        "const"
+      ],
+      "importance": 0.58
+    },
+    {
+      "id": "repo/opencode-skills-context-path-builder-skill-md",
+      "type": "module",
+      "title": "Context Path Builder",
+      "summary": "---",
+      "source": ".opencode/skills/context-path-builder/SKILL.md",
+      "tags": [
+        "opencode",
+        "skills",
+        "context",
+        "path",
+        "builder",
+        "skill",
+        "md",
+        "name",
+        "context-path-builder",
+        "description",
+        "build",
+        "minimal",
+        "sufficient",
+        "gomr",
+        "plan",
+        "for",
+        "task",
+        "use",
+        "this"
+      ],
+      "importance": 0.58
+    },
+    {
+      "id": "repo/readme-md",
+      "type": "doc",
+      "title": "OpenCode GOMR",
+      "summary": "Goal-Oriented Memory Runtime (GOMR) is a project-level OpenCode extension for preserving agent state without full-context reloads. It creates a local `.orca-memory` store, builds goal-oriented context plans, captures tool traces, and export",
+      "source": "README.md",
+      "tags": [
+        "readme",
+        "md",
+        "opencode",
+        "gomr",
+        "goal-oriented",
+        "memory",
+        "runtime",
+        "project-level",
+        "extension",
+        "for",
+        "preserving",
+        "agent",
+        "state",
+        "without",
+        "full-context",
+        "reloads",
+        "creates",
+        "local",
+        "orca-memory"
+      ],
+      "importance": 1
+    },
+    {
+      "id": "repo/docs-superpowers-plans-2026-06-08-gomr-v0-2-md",
+      "type": "doc",
+      "title": "GOMR v0.2 Implementation Plan",
+      "summary": "> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.",
+      "source": "docs/superpowers/plans/2026-06-08-gomr-v0.2.md",
+      "tags": [
+        "docs",
+        "superpowers",
+        "plans",
+        "2026",
+        "06",
+        "08",
+        "gomr",
+        "v0",
+        "2",
+        "md",
+        "implementation",
+        "plan",
+        "for",
+        "agentic",
+        "workers",
+        "required",
+        "sub-skill",
+        "use",
+        "subagent-driven-development"
+      ],
+      "importance": 0.78
+    },
+    {
+      "id": "repo/docs-superpowers-specs-2026-06-08-gomr-v0-2-design-md",
+      "type": "doc",
+      "title": "GOMR v0.2 Design",
+      "summary": "Upgrade GOMR from a lightweight context helper into a persistent memory runtime with durable trace evidence, per-turn path snapshots, graph data, and a static visual timeline.",
+      "source": "docs/superpowers/specs/2026-06-08-gomr-v0.2-design.md",
+      "tags": [
+        "docs",
+        "superpowers",
+        "specs",
+        "2026",
+        "06",
+        "08",
+        "gomr",
+        "v0",
+        "2",
+        "design",
+        "md",
+        "summary",
+        "upgrade",
+        "from",
+        "lightweight",
+        "context",
+        "helper",
+        "into",
+        "persistent"
+      ],
+      "importance": 0.78
+    }
+  ],
+  "edges": [
+    {
+      "from": "repo/root",
+      "to": "repo/opencode-gitignore",
+      "type": "contains",
+      "weight": 0.58
+    },
+    {
+      "from": "repo/root",
+      "to": "repo/opencode-agents-context-router-md",
+      "type": "contains",
+      "weight": 0.58
+    },
+    {
+      "from": "repo/root",
+      "to": "repo/opencode-gomr-build-context-state-ts",
+      "type": "contains",
+      "weight": 0.58
+    },
+    {
+      "from": "repo/root",
+      "to": "repo/opencode-gomr-capture-tool-trace-ts",
+      "type": "contains",
+      "weight": 0.58
+    },
+    {
+      "from": "repo/root",
+      "to": "repo/opencode-gomr-context-plan-ts",
+      "type": "contains",
+      "weight": 0.58
+    },
+    {
+      "from": "repo/root",
+      "to": "repo/opencode-gomr-gomr-test-ts",
+      "type": "contains",
+      "weight": 0.58
+    },
+    {
+      "from": "repo/root",
+      "to": "repo/opencode-gomr-gomr-ts",
+      "type": "contains",
+      "weight": 0.58
+    },
+    {
+      "from": "repo/root",
+      "to": "repo/opencode-gomr-memory-index-ts",
+      "type": "contains",
+      "weight": 0.58
+    },
+    {
+      "from": "repo/root",
+      "to": "repo/opencode-gomr-runtime-ts",
+      "type": "contains",
+      "weight": 0.58
+    },
+    {
+      "from": "repo/root",
+      "to": "repo/opencode-gomr-src-context-context-builder-ts",
+      "type": "contains",
+      "weight": 0.58
+    },
+    {
+      "from": "repo/root",
+      "to": "repo/opencode-gomr-src-repo-graph-graphify-adapter-ts",
+      "type": "contains",
+      "weight": 0.58
+    },
+    {
+      "from": "repo/root",
+      "to": "repo/opencode-gomr-src-repo-graph-static-repo-graph-ts",
+      "type": "contains",
+      "weight": 0.58
+    },
+    {
+      "from": "repo/root",
+      "to": "repo/opencode-gomr-src-routing-goal-router-ts",
+      "type": "contains",
+      "weight": 0.58
+    },
+    {
+      "from": "repo/root",
+      "to": "repo/opencode-package-lock-json",
+      "type": "contains",
+      "weight": 0.58
+    },
+    {
+      "from": "repo/root",
+      "to": "repo/opencode-package-json",
+      "type": "contains",
+      "weight": 0.58
+    },
+    {
+      "from": "repo/root",
+      "to": "repo/opencode-plugins-gomr-ts",
+      "type": "contains",
+      "weight": 0.58
+    },
+    {
+      "from": "repo/root",
+      "to": "repo/opencode-skills-context-path-builder-skill-md",
+      "type": "contains",
+      "weight": 0.58
+    },
+    {
+      "from": "repo/root",
+      "to": "repo/readme-md",
+      "type": "contains",
+      "weight": 1
+    },
+    {
+      "from": "repo/root",
+      "to": "repo/docs-superpowers-plans-2026-06-08-gomr-v0-2-md",
+      "type": "contains",
+      "weight": 0.78
+    },
+    {
+      "from": "repo/root",
+      "to": "repo/docs-superpowers-specs-2026-06-08-gomr-v0-2-design-md",
+      "type": "contains",
+      "weight": 0.78
+    },
+    {
+      "from": "repo/opencode-gitignore",
+      "to": "repo/opencode-agents-context-router-md",
+      "type": "mentions",
+      "weight": 0.22999999999999998
+    },
+    {
+      "from": "repo/opencode-gitignore",
+      "to": "repo/opencode-gomr-build-context-state-ts",
+      "type": "mentions",
+      "weight": 0.22999999999999998
+    },
+    {
+      "from": "repo/opencode-gitignore",
+      "to": "repo/opencode-gomr-capture-tool-trace-ts",
+      "type": "mentions",
+      "weight": 0.22999999999999998
+    },
+    {
+      "from": "repo/opencode-gitignore",
+      "to": "repo/opencode-gomr-context-plan-ts",
+      "type": "mentions",
+      "weight": 0.22999999999999998
+    },
+    {
+      "from": "repo/opencode-gitignore",
+      "to": "repo/opencode-gomr-gomr-test-ts",
+      "type": "mentions",
+      "weight": 0.22999999999999998
+    },
+    {
+      "from": "repo/opencode-gitignore",
+      "to": "repo/opencode-gomr-gomr-ts",
+      "type": "mentions",
+      "weight": 0.22999999999999998
+    },
+    {
+      "from": "repo/opencode-gitignore",
+      "to": "repo/opencode-gomr-memory-index-ts",
+      "type": "mentions",
+      "weight": 0.22999999999999998
+    },
+    {
+      "from": "repo/opencode-gitignore",
+      "to": "repo/opencode-gomr-runtime-ts",
+      "type": "mentions",
+      "weight": 0.22999999999999998
+    },
+    {
+      "from": "repo/opencode-gitignore",
+      "to": "repo/opencode-gomr-src-context-context-builder-ts",
+      "type": "mentions",
+      "weight": 0.22999999999999998
+    },
+    {
+      "from": "repo/opencode-gitignore",
+      "to": "repo/opencode-gomr-src-repo-graph-graphify-adapter-ts",
+      "type": "mentions",
+      "weight": 0.22999999999999998
+    },
+    {
+      "from": "repo/opencode-gitignore",
+      "to": "repo/opencode-gomr-src-repo-graph-static-repo-graph-ts",
+      "type": "mentions",
+      "weight": 0.22999999999999998
+    },
+    {
+      "from": "repo/opencode-gitignore",
+      "to": "repo/opencode-gomr-src-routing-goal-router-ts",
+      "type": "mentions",
+      "weight": 0.22999999999999998
+    },
+    {
+      "from": "repo/opencode-gitignore",
+      "to": "repo/opencode-package-lock-json",
+      "type": "mentions",
+      "weight": 0.55
+    },
+    {
+      "from": "repo/opencode-gitignore",
+      "to": "repo/opencode-package-json",
+      "type": "mentions",
+      "weight": 0.39
+    },
+    {
+      "from": "repo/opencode-gitignore",
+      "to": "repo/opencode-plugins-gomr-ts",
+      "type": "mentions",
+      "weight": 0.22999999999999998
+    },
+    {
+      "from": "repo/opencode-gitignore",
+      "to": "repo/opencode-skills-context-path-builder-skill-md",
+      "type": "mentions",
+      "weight": 0.22999999999999998
+    },
+    {
+      "from": "repo/opencode-gitignore",
+      "to": "repo/readme-md",
+      "type": "mentions",
+      "weight": 0.22999999999999998
+    },
+    {
+      "from": "repo/opencode-agents-context-router-md",
+      "to": "repo/opencode-gitignore",
+      "type": "mentions",
+      "weight": 0.22999999999999998
+    },
+    {
+      "from": "repo/opencode-agents-context-router-md",
+      "to": "repo/opencode-gomr-build-context-state-ts",
+      "type": "mentions",
+      "weight": 0.39
+    },
+    {
+      "from": "repo/opencode-agents-context-router-md",
+      "to": "repo/opencode-gomr-capture-tool-trace-ts",
+      "type": "mentions",
+      "weight": 0.31
+    },
+    {
+      "from": "repo/opencode-agents-context-router-md",
+      "to": "repo/opencode-gomr-context-plan-ts",
+      "type": "mentions",
+      "weight": 0.47
+    },
+    {
+      "from": "repo/opencode-agents-context-router-md",
+      "to": "repo/opencode-gomr-gomr-test-ts",
+      "type": "mentions",
+      "weight": 0.31
+    },
+    {
+      "from": "repo/opencode-agents-context-router-md",
+      "to": "repo/opencode-gomr-gomr-ts",
+      "type": "mentions",
+      "weight": 0.31
+    },
+    {
+      "from": "repo/opencode-agents-context-router-md",
+      "to": "repo/opencode-gomr-memory-index-ts",
+      "type": "mentions",
+      "weight": 0.31
+    },
+    {
+      "from": "repo/opencode-agents-context-router-md",
+      "to": "repo/opencode-gomr-runtime-ts",
+      "type": "mentions",
+      "weight": 0.31
+    },
+    {
+      "from": "repo/opencode-agents-context-router-md",
+      "to": "repo/opencode-gomr-src-context-context-builder-ts",
+      "type": "mentions",
+      "weight": 0.39
+    },
+    {
+      "from": "repo/opencode-agents-context-router-md",
+      "to": "repo/opencode-gomr-src-repo-graph-graphify-adapter-ts",
+      "type": "mentions",
+      "weight": 0.31
+    },
+    {
+      "from": "repo/opencode-agents-context-router-md",
+      "to": "repo/opencode-gomr-src-repo-graph-static-repo-graph-ts",
+      "type": "mentions",
+      "weight": 0.31
+    },
+    {
+      "from": "repo/opencode-agents-context-router-md",
+      "to": "repo/opencode-gomr-src-routing-goal-router-ts",
+      "type": "mentions",
+      "weight": 0.47
+    },
+    {
+      "from": "repo/opencode-agents-context-router-md",
+      "to": "repo/opencode-package-lock-json",
+      "type": "mentions",
+      "weight": 0.31
+    },
+    {
+      "from": "repo/opencode-agents-context-router-md",
+      "to": "repo/opencode-package-json",
+      "type": "mentions",
+      "weight": 0.22999999999999998
+    },
+    {
+      "from": "repo/opencode-agents-context-router-md",
+      "to": "repo/opencode-plugins-gomr-ts",
+      "type": "mentions",
+      "weight": 0.31
+    },
+    {
+      "from": "repo/opencode-agents-context-router-md",
+      "to": "repo/opencode-skills-context-path-builder-skill-md",
+      "type": "mentions",
+      "weight": 0.7100000000000001
+    },
+    {
+      "from": "repo/opencode-agents-context-router-md",
+      "to": "repo/readme-md",
+      "type": "mentions",
+      "weight": 0.31
+    },
+    {
+      "from": "repo/opencode-agents-context-router-md",
+      "to": "repo/docs-superpowers-plans-2026-06-08-gomr-v0-2-md",
+      "type": "mentions",
+      "weight": 0.22999999999999998
+    },
+    {
+      "from": "repo/opencode-agents-context-router-md",
+      "to": "repo/docs-superpowers-specs-2026-06-08-gomr-v0-2-design-md",
+      "type": "mentions",
+      "weight": 0.31
+    },
+    {
+      "from": "repo/opencode-gomr-build-context-state-ts",
+      "to": "repo/opencode-gitignore",
+      "type": "mentions",
+      "weight": 0.22999999999999998
+    },
+    {
+      "from": "repo/opencode-gomr-build-context-state-ts",
+      "to": "repo/opencode-agents-context-router-md",
+      "type": "mentions",
+      "weight": 0.39
+    },
+    {
+      "from": "repo/opencode-gomr-build-context-state-ts",
+      "to": "repo/opencode-gomr-capture-tool-trace-ts",
+      "type": "mentions",
+      "weight": 0.8
+    },
+    {
+      "from": "repo/opencode-gomr-build-context-state-ts",
+      "to": "repo/opencode-gomr-context-plan-ts",
+      "type": "mentions",
+      "weight": 0.8
+    },
+    {
+      "from": "repo/opencode-gomr-build-context-state-ts",
+      "to": "repo/opencode-gomr-gomr-test-ts",
+      "type": "mentions",
+      "weight": 0.55
+    },
+    {
+      "from": "repo/opencode-gomr-build-context-state-ts",
+      "to": "repo/opencode-gomr-gomr-ts",
+      "type": "mentions",
+      "weight": 0.55
+    },
+    {
+      "from": "repo/opencode-gomr-build-context-state-ts",
+      "to": "repo/opencode-gomr-memory-index-ts",
+      "type": "mentions",
+      "weight": 0.8
+    },
+    {
+      "from": "repo/opencode-gomr-build-context-state-ts",
+      "to": "repo/opencode-gomr-runtime-ts",
+      "type": "mentions",
+      "weight": 0.55
+    },
+    {
+      "from": "repo/opencode-gomr-build-context-state-ts",
+      "to": "repo/opencode-gomr-src-context-context-builder-ts",
+      "type": "mentions",
+      "weight": 0.55
+    },
+    {
+      "from": "repo/opencode-gomr-build-context-state-ts",
+      "to": "repo/opencode-gomr-src-repo-graph-graphify-adapter-ts",
+      "type": "mentions",
+      "weight": 0.47
+    },
+    {
+      "from": "repo/opencode-gomr-build-context-state-ts",
+      "to": "repo/opencode-gomr-src-repo-graph-static-repo-graph-ts",
+      "type": "mentions",
+      "weight": 0.47
+    },
+    {
+      "from": "repo/opencode-gomr-build-context-state-ts",
+      "to": "repo/opencode-gomr-src-routing-goal-router-ts",
+      "type": "mentions",
+      "weight": 0.47
+    },
+    {
+      "from": "repo/opencode-gomr-build-context-state-ts",
+      "to": "repo/opencode-package-lock-json",
+      "type": "mentions",
+      "weight": 0.22999999999999998
+    },
+    {
+      "from": "repo/opencode-gomr-build-context-state-ts",
+      "to": "repo/opencode-package-json",
+      "type": "mentions",
+      "weight": 0.22999999999999998
+    },
+    {
+      "from": "repo/opencode-gomr-build-context-state-ts",
+      "to": "repo/opencode-plugins-gomr-ts",
+      "type": "mentions",
+      "weight": 0.63
+    },
+    {
+      "from": "repo/opencode-gomr-build-context-state-ts",
+      "to": "repo/opencode-skills-context-path-builder-skill-md",
+      "type": "mentions",
+      "weight": 0.47
+    },
+    {
+      "from": "repo/opencode-gomr-build-context-state-ts",
+      "to": "repo/readme-md",
+      "type": "mentions",
+      "weight": 0.47
+    },
+    {
+      "from": "repo/opencode-gomr-build-context-state-ts",
+      "to": "repo/docs-superpowers-plans-2026-06-08-gomr-v0-2-md",
+      "type": "mentions",
+      "weight": 0.22999999999999998
+    },
+    {
+      "from": "repo/opencode-gomr-build-context-state-ts",
+      "to": "repo/docs-superpowers-specs-2026-06-08-gomr-v0-2-design-md",
+      "type": "mentions",
+      "weight": 0.39
+    },
+    {
+      "from": "repo/opencode-gomr-capture-tool-trace-ts",
+      "to": "repo/opencode-gitignore",
+      "type": "mentions",
+      "weight": 0.22999999999999998
+    },
+    {
+      "from": "repo/opencode-gomr-capture-tool-trace-ts",
+      "to": "repo/opencode-agents-context-router-md",
+      "type": "mentions",
+      "weight": 0.31
+    },
+    {
+      "from": "repo/opencode-gomr-capture-tool-trace-ts",
+      "to": "repo/opencode-gomr-build-context-state-ts",
+      "type": "mentions",
+      "weight": 0.8
+    },
+    {
+      "from": "repo/opencode-gomr-capture-tool-trace-ts",
+      "to": "repo/opencode-gomr-context-plan-ts",
+      "type": "mentions",
+      "weight": 0.8
+    },
+    {
+      "from": "repo/opencode-gomr-capture-tool-trace-ts",
+      "to": "repo/opencode-gomr-gomr-test-ts",
+      "type": "mentions",
+      "weight": 0.55
+    },
+    {
+      "from": "repo/opencode-gomr-capture-tool-trace-ts",
+      "to": "repo/opencode-gomr-gomr-ts",
+      "type": "mentions",
+      "weight": 0.55
+    },
+    {
+      "from": "repo/opencode-gomr-capture-tool-trace-ts",
+      "to": "repo/opencode-gomr-memory-index-ts",
+      "type": "mentions",
+      "weight": 0.8
+    },
+    {
+      "from": "repo/opencode-gomr-capture-tool-trace-ts",
+      "to": "repo/opencode-gomr-runtime-ts",
+      "type": "mentions",
+      "weight": 0.55
+    },
+    {
+      "from": "repo/opencode-gomr-capture-tool-trace-ts",
+      "to": "repo/opencode-gomr-src-context-context-builder-ts",
+      "type": "mentions",
+      "weight": 0.47
+    },
+    {
+      "from": "repo/opencode-gomr-capture-tool-trace-ts",
+      "to": "repo/opencode-gomr-src-repo-graph-graphify-adapter-ts",
+      "type": "mentions",
+      "weight": 0.47
+    },
+    {
+      "from": "repo/opencode-gomr-capture-tool-trace-ts",
+      "to": "repo/opencode-gomr-src-repo-graph-static-repo-graph-ts",
+      "type": "mentions",
+      "weight": 0.47
+    },
+    {
+      "from": "repo/opencode-gomr-capture-tool-trace-ts",
+      "to": "repo/opencode-gomr-src-routing-goal-router-ts",
+      "type": "mentions",
+      "weight": 0.47
+    },
+    {
+      "from": "repo/opencode-gomr-capture-tool-trace-ts",
+      "to": "repo/opencode-package-lock-json",
+      "type": "mentions",
+      "weight": 0.22999999999999998
+    },
+    {
+      "from": "repo/opencode-gomr-capture-tool-trace-ts",
+      "to": "repo/opencode-package-json",
+      "type": "mentions",
+      "weight": 0.22999999999999998
+    },
+    {
+      "from": "repo/opencode-gomr-capture-tool-trace-ts",
+      "to": "repo/opencode-plugins-gomr-ts",
+      "type": "mentions",
+      "weight": 0.63
+    },
+    {
+      "from": "repo/opencode-gomr-capture-tool-trace-ts",
+      "to": "repo/opencode-skills-context-path-builder-skill-md",
+      "type": "mentions",
+      "weight": 0.31
+    },
+    {
+      "from": "repo/opencode-gomr-capture-tool-trace-ts",
+      "to": "repo/readme-md",
+      "type": "mentions",
+      "weight": 0.39
+    },
+    {
+      "from": "repo/opencode-gomr-capture-tool-trace-ts",
+      "to": "repo/docs-superpowers-plans-2026-06-08-gomr-v0-2-md",
+      "type": "mentions",
+      "weight": 0.22999999999999998
+    },
+    {
+      "from": "repo/opencode-gomr-capture-tool-trace-ts",
+      "to": "repo/docs-superpowers-specs-2026-06-08-gomr-v0-2-design-md",
+      "type": "mentions",
+      "weight": 0.31
+    },
+    {
+      "from": "repo/opencode-gomr-context-plan-ts",
+      "to": "repo/opencode-gitignore",
+      "type": "mentions",
+      "weight": 0.22999999999999998
+    },
+    {
+      "from": "repo/opencode-gomr-context-plan-ts",
+      "to": "repo/opencode-agents-context-router-md",
+      "type": "mentions",
+      "weight": 0.47
+    },
+    {
+      "from": "repo/opencode-gomr-context-plan-ts",
+      "to": "repo/opencode-gomr-build-context-state-ts",
+      "type": "mentions",
+      "weight": 0.8
+    },
+    {
+      "from": "repo/opencode-gomr-context-plan-ts",
+      "to": "repo/opencode-gomr-capture-tool-trace-ts",
+      "type": "mentions",
+      "weight": 0.8
+    },
+    {
+      "from": "repo/opencode-gomr-context-plan-ts",
+      "to": "repo/opencode-gomr-gomr-test-ts",
+      "type": "mentions",
+      "weight": 0.55
+    },
+    {
+      "from": "repo/opencode-gomr-context-plan-ts",
+      "to": "repo/opencode-gomr-gomr-ts",
+      "type": "mentions",
+      "weight": 0.55
+    },
+    {
+      "from": "repo/opencode-gomr-context-plan-ts",
+      "to": "repo/opencode-gomr-memory-index-ts",
+      "type": "mentions",
+      "weight": 0.8
+    },
+    {
+      "from": "repo/opencode-gomr-context-plan-ts",
+      "to": "repo/opencode-gomr-runtime-ts",
+      "type": "mentions",
+      "weight": 0.55
+    },
+    {
+      "from": "repo/opencode-gomr-context-plan-ts",
+      "to": "repo/opencode-gomr-src-context-context-builder-ts",
+      "type": "mentions",
+      "weight": 0.55
+    },
+    {
+      "from": "repo/opencode-gomr-context-plan-ts",
+      "to": "repo/opencode-gomr-src-repo-graph-graphify-adapter-ts",
+      "type": "mentions",
+      "weight": 0.47
+    },
+    {
+      "from": "repo/opencode-gomr-context-plan-ts",
+      "to": "repo/opencode-gomr-src-repo-graph-static-repo-graph-ts",
+      "type": "mentions",
+      "weight": 0.47
+    },
+    {
+      "from": "repo/opencode-gomr-context-plan-ts",
+      "to": "repo/opencode-gomr-src-routing-goal-router-ts",
+      "type": "mentions",
+      "weight": 0.55
+    },
+    {
+      "from": "repo/opencode-gomr-context-plan-ts",
+      "to": "repo/opencode-package-lock-json",
+      "type": "mentions",
+      "weight": 0.22999999999999998
+    },
+    {
+      "from": "repo/opencode-gomr-context-plan-ts",
+      "to": "repo/opencode-package-json",
+      "type": "mentions",
+      "weight": 0.22999999999999998
+    },
+    {
+      "from": "repo/opencode-gomr-context-plan-ts",
+      "to": "repo/opencode-plugins-gomr-ts",
+      "type": "mentions",
+      "weight": 0.63
+    },
+    {
+      "from": "repo/opencode-gomr-context-plan-ts",
+      "to": "repo/opencode-skills-context-path-builder-skill-md",
+      "type": "mentions",
+      "weight": 0.47
+    },
+    {
+      "from": "repo/opencode-gomr-context-plan-ts",
+      "to": "repo/readme-md",
+      "type": "mentions",
+      "weight": 0.39
+    },
+    {
+      "from": "repo/opencode-gomr-context-plan-ts",
+      "to": "repo/docs-superpowers-plans-2026-06-08-gomr-v0-2-md",
+      "type": "mentions",
+      "weight": 0.31
+    },
+    {
+      "from": "repo/opencode-gomr-context-plan-ts",
+      "to": "repo/docs-superpowers-specs-2026-06-08-gomr-v0-2-design-md",
+      "type": "mentions",
+      "weight": 0.39
+    },
+    {
+      "from": "repo/opencode-gomr-gomr-test-ts",
+      "to": "repo/opencode-gitignore",
+      "type": "mentions",
+      "weight": 0.22999999999999998
+    },
+    {
+      "from": "repo/opencode-gomr-gomr-test-ts",
+      "to": "repo/opencode-agents-context-router-md",
+      "type": "mentions",
+      "weight": 0.31
+    },
+    {
+      "from": "repo/opencode-gomr-gomr-test-ts",
+      "to": "repo/opencode-gomr-build-context-state-ts",
+      "type": "mentions",
+      "weight": 0.55
+    },
+    {
+      "from": "repo/opencode-gomr-gomr-test-ts",
+      "to": "repo/opencode-gomr-capture-tool-trace-ts",
+      "type": "mentions",
+      "weight": 0.55
+    },
+    {
+      "from": "repo/opencode-gomr-gomr-test-ts",
+      "to": "repo/opencode-gomr-context-plan-ts",
+      "type": "mentions",
+      "weight": 0.55
+    },
+    {
+      "from": "repo/opencode-gomr-gomr-test-ts",
+      "to": "repo/opencode-gomr-gomr-ts",
+      "type": "mentions",
+      "weight": 0.63
+    },
+    {
+      "from": "repo/opencode-gomr-gomr-test-ts",
+      "to": "repo/opencode-gomr-memory-index-ts",
+      "type": "mentions",
+      "weight": 0.55
+    },
+    {
+      "from": "repo/opencode-gomr-gomr-test-ts",
+      "to": "repo/opencode-gomr-runtime-ts",
+      "type": "mentions",
+      "weight": 0.8
+    },
+    {
+      "from": "repo/opencode-gomr-gomr-test-ts",
+      "to": "repo/opencode-gomr-src-context-context-builder-ts",
+      "type": "mentions",
+      "weight": 0.7100000000000001
+    },
+    {
+      "from": "repo/opencode-gomr-gomr-test-ts",
+      "to": "repo/opencode-gomr-src-repo-graph-graphify-adapter-ts",
+      "type": "mentions",
+      "weight": 0.7100000000000001
+    },
+    {
+      "from": "repo/opencode-gomr-gomr-test-ts",
+      "to": "repo/opencode-gomr-src-repo-graph-static-repo-graph-ts",
+      "type": "mentions",
+      "weight": 0.7100000000000001
+    },
+    {
+      "from": "repo/opencode-gomr-gomr-test-ts",
+      "to": "repo/opencode-gomr-src-routing-goal-router-ts",
+      "type": "mentions",
+      "weight": 0.7100000000000001
+    },
+    {
+      "from": "repo/opencode-gomr-gomr-test-ts",
+      "to": "repo/opencode-package-lock-json",
+      "type": "mentions",
+      "weight": 0.22999999999999998
+    },
+    {
+      "from": "repo/opencode-gomr-gomr-test-ts",
+      "to": "repo/opencode-package-json",
+      "type": "mentions",
+      "weight": 0.22999999999999998
+    },
+    {
+      "from": "repo/opencode-gomr-gomr-test-ts",
+      "to": "repo/opencode-plugins-gomr-ts",
+      "type": "mentions",
+      "weight": 0.63
+    },
+    {
+      "from": "repo/opencode-gomr-gomr-test-ts",
+      "to": "repo/opencode-skills-context-path-builder-skill-md",
+      "type": "mentions",
+      "weight": 0.39
+    },
+    {
+      "from": "repo/opencode-gomr-gomr-test-ts",
+      "to": "repo/readme-md",
+      "type": "mentions",
+      "weight": 0.39
+    },
+    {
+      "from": "repo/opencode-gomr-gomr-test-ts",
+      "to": "repo/docs-superpowers-plans-2026-06-08-gomr-v0-2-md",
+      "type": "mentions",
+      "weight": 0.22999999999999998
+    },
+    {
+      "from": "repo/opencode-gomr-gomr-test-ts",
+      "to": "repo/docs-superpowers-specs-2026-06-08-gomr-v0-2-design-md",
+      "type": "mentions",
+      "weight": 0.31
+    },
+    {
+      "from": "repo/opencode-gomr-gomr-ts",
+      "to": "repo/opencode-gitignore",
+      "type": "mentions",
+      "weight": 0.22999999999999998
+    },
+    {
+      "from": "repo/opencode-gomr-gomr-ts",
+      "to": "repo/opencode-agents-context-router-md",
+      "type": "mentions",
+      "weight": 0.31
+    },
+    {
+      "from": "repo/opencode-gomr-gomr-ts",
+      "to": "repo/opencode-gomr-build-context-state-ts",
+      "type": "mentions",
+      "weight": 0.55
+    },
+    {
+      "from": "repo/opencode-gomr-gomr-ts",
+      "to": "repo/opencode-gomr-capture-tool-trace-ts",
+      "type": "mentions",
+      "weight": 0.55
+    },
+    {
+      "from": "repo/opencode-gomr-gomr-ts",
+      "to": "repo/opencode-gomr-context-plan-ts",
+      "type": "mentions",
+      "weight": 0.55
+    },
+    {
+      "from": "repo/opencode-gomr-gomr-ts",
+      "to": "repo/opencode-gomr-gomr-test-ts",
+      "type": "mentions",
+      "weight": 0.63
+    },
+    {
+      "from": "repo/opencode-gomr-gomr-ts",
+      "to": "repo/opencode-gomr-memory-index-ts",
+      "type": "mentions",
+      "weight": 0.55
+    },
+    {
+      "from": "repo/opencode-gomr-gomr-ts",
+      "to": "repo/opencode-gomr-runtime-ts",
+      "type": "mentions",
+      "weight": 0.63
+    },
+    {
+      "from": "repo/opencode-gomr-gomr-ts",
+      "to": "repo/opencode-gomr-src-context-context-builder-ts",
+      "type": "mentions",
+      "weight": 0.63
+    },
+    {
+      "from": "repo/opencode-gomr-gomr-ts",
+      "to": "repo/opencode-gomr-src-repo-graph-graphify-adapter-ts",
+      "type": "mentions",
+      "weight": 0.63
+    },
+    {
+      "from": "repo/opencode-gomr-gomr-ts",
+      "to": "repo/opencode-gomr-src-repo-graph-static-repo-graph-ts",
+      "type": "mentions",
+      "weight": 0.63
+    },
+    {
+      "from": "repo/opencode-gomr-gomr-ts",
+      "to": "repo/opencode-gomr-src-routing-goal-router-ts",
+      "type": "mentions",
+      "weight": 0.63
+    },
+    {
+      "from": "repo/opencode-gomr-gomr-ts",
+      "to": "repo/opencode-package-lock-json",
+      "type": "mentions",
+      "weight": 0.22999999999999998
+    },
+    {
+      "from": "repo/opencode-gomr-gomr-ts",
+      "to": "repo/opencode-package-json",
+      "type": "mentions",
+      "weight": 0.22999999999999998
+    },
+    {
+      "from": "repo/opencode-gomr-gomr-ts",
+      "to": "repo/opencode-plugins-gomr-ts",
+      "type": "mentions",
+      "weight": 0.8
+    },
+    {
+      "from": "repo/opencode-gomr-gomr-ts",
+      "to": "repo/opencode-skills-context-path-builder-skill-md",
+      "type": "mentions",
+      "weight": 0.39
+    },
+    {
+      "from": "repo/opencode-gomr-gomr-ts",
+      "to": "repo/readme-md",
+      "type": "mentions",
+      "weight": 0.31
+    },
+    {
+      "from": "repo/opencode-gomr-gomr-ts",
+      "to": "repo/docs-superpowers-plans-2026-06-08-gomr-v0-2-md",
+      "type": "mentions",
+      "weight": 0.22999999999999998
+    },
+    {
+      "from": "repo/opencode-gomr-gomr-ts",
+      "to": "repo/docs-superpowers-specs-2026-06-08-gomr-v0-2-design-md",
+      "type": "mentions",
+      "weight": 0.31
+    },
+    {
+      "from": "repo/opencode-gomr-memory-index-ts",
+      "to": "repo/opencode-gitignore",
+      "type": "mentions",
+      "weight": 0.22999999999999998
+    },
+    {
+      "from": "repo/opencode-gomr-memory-index-ts",
+      "to": "repo/opencode-agents-context-router-md",
+      "type": "mentions",
+      "weight": 0.31
+    },
+    {
+      "from": "repo/opencode-gomr-memory-index-ts",
+      "to": "repo/opencode-gomr-build-context-state-ts",
+      "type": "mentions",
+      "weight": 0.8
+    },
+    {
+      "from": "repo/opencode-gomr-memory-index-ts",
+      "to": "repo/opencode-gomr-capture-tool-trace-ts",
+      "type": "mentions",
+      "weight": 0.8
+    },
+    {
+      "from": "repo/opencode-gomr-memory-index-ts",
+      "to": "repo/opencode-gomr-context-plan-ts",
+      "type": "mentions",
+      "weight": 0.8
+    },
+    {
+      "from": "repo/opencode-gomr-memory-index-ts",
+      "to": "repo/opencode-gomr-gomr-test-ts",
+      "type": "mentions",
+      "weight": 0.55
+    },
+    {
+      "from": "repo/opencode-gomr-memory-index-ts",
+      "to": "repo/opencode-gomr-gomr-ts",
+      "type": "mentions",
+      "weight": 0.55
+    },
+    {
+      "from": "repo/opencode-gomr-memory-index-ts",
+      "to": "repo/opencode-gomr-runtime-ts",
+      "type": "mentions",
+      "weight": 0.55
+    },
+    {
+      "from": "repo/opencode-gomr-memory-index-ts",
+      "to": "repo/opencode-gomr-src-context-context-builder-ts",
+      "type": "mentions",
+      "weight": 0.47
+    },
+    {
+      "from": "repo/opencode-gomr-memory-index-ts",
+      "to": "repo/opencode-gomr-src-repo-graph-graphify-adapter-ts",
+      "type": "mentions",
+      "weight": 0.47
+    },
+    {
+      "from": "repo/opencode-gomr-memory-index-ts",
+      "to": "repo/opencode-gomr-src-repo-graph-static-repo-graph-ts",
+      "type": "mentions",
+      "weight": 0.47
+    },
+    {
+      "from": "repo/opencode-gomr-memory-index-ts",
+      "to": "repo/opencode-gomr-src-routing-goal-router-ts",
+      "type": "mentions",
+      "weight": 0.47
+    },
+    {
+      "from": "repo/opencode-gomr-memory-index-ts",
+      "to": "repo/opencode-package-lock-json",
+      "type": "mentions",
+      "weight": 0.22999999999999998
+    },
+    {
+      "from": "repo/opencode-gomr-memory-index-ts",
+      "to": "repo/opencode-package-json",
+      "type": "mentions",
+      "weight": 0.22999999999999998
+    },
+    {
+      "from": "repo/opencode-gomr-memory-index-ts",
+      "to": "repo/opencode-plugins-gomr-ts",
+      "type": "mentions",
+      "weight": 0.63
+    },
+    {
+      "from": "repo/opencode-gomr-memory-index-ts",
+      "to": "repo/opencode-skills-context-path-builder-skill-md",
+      "type": "mentions",
+      "weight": 0.31
+    },
+    {
+      "from": "repo/opencode-gomr-memory-index-ts",
+      "to": "repo/readme-md",
+      "type": "mentions",
+      "weight": 0.47
+    },
+    {
+      "from": "repo/opencode-gomr-memory-index-ts",
+      "to": "repo/docs-superpowers-plans-2026-06-08-gomr-v0-2-md",
+      "type": "mentions",
+      "weight": 0.22999999999999998
+    },
+    {
+      "from": "repo/opencode-gomr-memory-index-ts",
+      "to": "repo/docs-superpowers-specs-2026-06-08-gomr-v0-2-design-md",
+      "type": "mentions",
+      "weight": 0.31
+    },
+    {
+      "from": "repo/opencode-gomr-runtime-ts",
+      "to": "repo/opencode-gitignore",
+      "type": "mentions",
+      "weight": 0.22999999999999998
+    },
+    {
+      "from": "repo/opencode-gomr-runtime-ts",
+      "to": "repo/opencode-agents-context-router-md",
+      "type": "mentions",
+      "weight": 0.31
+    },
+    {
+      "from": "repo/opencode-gomr-runtime-ts",
+      "to": "repo/opencode-gomr-build-context-state-ts",
+      "type": "mentions",
+      "weight": 0.55
+    },
+    {
+      "from": "repo/opencode-gomr-runtime-ts",
+      "to": "repo/opencode-gomr-capture-tool-trace-ts",
+      "type": "mentions",
+      "weight": 0.55
+    },
+    {
+      "from": "repo/opencode-gomr-runtime-ts",
+      "to": "repo/opencode-gomr-context-plan-ts",
+      "type": "mentions",
+      "weight": 0.55
+    },
+    {
+      "from": "repo/opencode-gomr-runtime-ts",
+      "to": "repo/opencode-gomr-gomr-test-ts",
+      "type": "mentions",
+      "weight": 0.8
+    },
+    {
+      "from": "repo/opencode-gomr-runtime-ts",
+      "to": "repo/opencode-gomr-gomr-ts",
+      "type": "mentions",
+      "weight": 0.63
+    },
+    {
+      "from": "repo/opencode-gomr-runtime-ts",
+      "to": "repo/opencode-gomr-memory-index-ts",
+      "type": "mentions",
+      "weight": 0.55
+    },
+    {
+      "from": "repo/opencode-gomr-runtime-ts",
+      "to": "repo/opencode-gomr-src-context-context-builder-ts",
+      "type": "mentions",
+      "weight": 0.7100000000000001
+    },
+    {
+      "from": "repo/opencode-gomr-runtime-ts",
+      "to": "repo/opencode-gomr-src-repo-graph-graphify-adapter-ts",
+      "type": "mentions",
+      "weight": 0.7100000000000001
+    },
+    {
+      "from": "repo/opencode-gomr-runtime-ts",
+      "to": "repo/opencode-gomr-src-repo-graph-static-repo-graph-ts",
+      "type": "mentions",
+      "weight": 0.7100000000000001
+    },
+    {
+      "from": "repo/opencode-gomr-runtime-ts",
+      "to": "repo/opencode-gomr-src-routing-goal-router-ts",
+      "type": "mentions",
+      "weight": 0.7100000000000001
+    },
+    {
+      "from": "repo/opencode-gomr-runtime-ts",
+      "to": "repo/opencode-package-lock-json",
+      "type": "mentions",
+      "weight": 0.22999999999999998
+    },
+    {
+      "from": "repo/opencode-gomr-runtime-ts",
+      "to": "repo/opencode-package-json",
+      "type": "mentions",
+      "weight": 0.22999999999999998
+    },
+    {
+      "from": "repo/opencode-gomr-runtime-ts",
+      "to": "repo/opencode-plugins-gomr-ts",
+      "type": "mentions",
+      "weight": 0.55
+    },
+    {
+      "from": "repo/opencode-gomr-runtime-ts",
+      "to": "repo/opencode-skills-context-path-builder-skill-md",
+      "type": "mentions",
+      "weight": 0.39
+    },
+    {
+      "from": "repo/opencode-gomr-runtime-ts",
+      "to": "repo/readme-md",
+      "type": "mentions",
+      "weight": 0.39
+    },
+    {
+      "from": "repo/opencode-gomr-runtime-ts",
+      "to": "repo/docs-superpowers-plans-2026-06-08-gomr-v0-2-md",
+      "type": "mentions",
+      "weight": 0.22999999999999998
+    },
+    {
+      "from": "repo/opencode-gomr-runtime-ts",
+      "to": "repo/docs-superpowers-specs-2026-06-08-gomr-v0-2-design-md",
+      "type": "mentions",
+      "weight": 0.31
+    },
+    {
+      "from": "repo/opencode-gomr-src-context-context-builder-ts",
+      "to": "repo/opencode-gitignore",
+      "type": "mentions",
+      "weight": 0.22999999999999998
+    },
+    {
+      "from": "repo/opencode-gomr-src-context-context-builder-ts",
+      "to": "repo/opencode-agents-context-router-md",
+      "type": "mentions",
+      "weight": 0.39
+    },
+    {
+      "from": "repo/opencode-gomr-src-context-context-builder-ts",
+      "to": "repo/opencode-gomr-build-context-state-ts",
+      "type": "mentions",
+      "weight": 0.55
+    },
+    {
+      "from": "repo/opencode-gomr-src-context-context-builder-ts",
+      "to": "repo/opencode-gomr-capture-tool-trace-ts",
+      "type": "mentions",
+      "weight": 0.47
+    },
+    {
+      "from": "repo/opencode-gomr-src-context-context-builder-ts",
+      "to": "repo/opencode-gomr-context-plan-ts",
+      "type": "mentions",
+      "weight": 0.55
+    },
+    {
+      "from": "repo/opencode-gomr-src-context-context-builder-ts",
+      "to": "repo/opencode-gomr-gomr-test-ts",
+      "type": "mentions",
+      "weight": 0.7100000000000001
+    },
+    {
+      "from": "repo/opencode-gomr-src-context-context-builder-ts",
+      "to": "repo/opencode-gomr-gomr-ts",
+      "type": "mentions",
+      "weight": 0.63
+    },
+    {
+      "from": "repo/opencode-gomr-src-context-context-builder-ts",
+      "to": "repo/opencode-gomr-memory-index-ts",
+      "type": "mentions",
+      "weight": 0.47
+    },
+    {
+      "from": "repo/opencode-gomr-src-context-context-builder-ts",
+      "to": "repo/opencode-gomr-runtime-ts",
+      "type": "mentions",
+      "weight": 0.7100000000000001
+    },
+    {
+      "from": "repo/opencode-gomr-src-context-context-builder-ts",
+      "to": "repo/opencode-gomr-src-repo-graph-graphify-adapter-ts",
+      "type": "mentions",
+      "weight": 0.8
+    },
+    {
+      "from": "repo/opencode-gomr-src-context-context-builder-ts",
+      "to": "repo/opencode-gomr-src-repo-graph-static-repo-graph-ts",
+      "type": "mentions",
+      "weight": 0.8
+    },
+    {
+      "from": "repo/opencode-gomr-src-context-context-builder-ts",
+      "to": "repo/opencode-gomr-src-routing-goal-router-ts",
+      "type": "mentions",
+      "weight": 0.8
+    },
+    {
+      "from": "repo/opencode-gomr-src-context-context-builder-ts",
+      "to": "repo/opencode-package-lock-json",
+      "type": "mentions",
+      "weight": 0.22999999999999998
+    },
+    {
+      "from": "repo/opencode-gomr-src-context-context-builder-ts",
+      "to": "repo/opencode-package-json",
+      "type": "mentions",
+      "weight": 0.22999999999999998
+    },
+    {
+      "from": "repo/opencode-gomr-src-context-context-builder-ts",
+      "to": "repo/opencode-plugins-gomr-ts",
+      "type": "mentions",
+      "weight": 0.55
+    },
+    {
+      "from": "repo/opencode-gomr-src-context-context-builder-ts",
+      "to": "repo/opencode-skills-context-path-builder-skill-md",
+      "type": "mentions",
+      "weight": 0.55
+    },
+    {
+      "from": "repo/opencode-gomr-src-context-context-builder-ts",
+      "to": "repo/readme-md",
+      "type": "mentions",
+      "weight": 0.31
+    },
+    {
+      "from": "repo/opencode-gomr-src-context-context-builder-ts",
+      "to": "repo/docs-superpowers-plans-2026-06-08-gomr-v0-2-md",
+      "type": "mentions",
+      "weight": 0.22999999999999998
+    },
+    {
+      "from": "repo/opencode-gomr-src-context-context-builder-ts",
+      "to": "repo/docs-superpowers-specs-2026-06-08-gomr-v0-2-design-md",
+      "type": "mentions",
+      "weight": 0.39
+    },
+    {
+      "from": "repo/opencode-gomr-src-repo-graph-graphify-adapter-ts",
+      "to": "repo/opencode-gitignore",
+      "type": "mentions",
+      "weight": 0.22999999999999998
+    },
+    {
+      "from": "repo/opencode-gomr-src-repo-graph-graphify-adapter-ts",
+      "to": "repo/opencode-agents-context-router-md",
+      "type": "mentions",
+      "weight": 0.31
+    },
+    {
+      "from": "repo/opencode-gomr-src-repo-graph-graphify-adapter-ts",
+      "to": "repo/opencode-gomr-build-context-state-ts",
+      "type": "mentions",
+      "weight": 0.47
+    },
+    {
+      "from": "repo/opencode-gomr-src-repo-graph-graphify-adapter-ts",
+      "to": "repo/opencode-gomr-capture-tool-trace-ts",
+      "type": "mentions",
+      "weight": 0.47
+    },
+    {
+      "from": "repo/opencode-gomr-src-repo-graph-graphify-adapter-ts",
+      "to": "repo/opencode-gomr-context-plan-ts",
+      "type": "mentions",
+      "weight": 0.47
+    },
+    {
+      "from": "repo/opencode-gomr-src-repo-graph-graphify-adapter-ts",
+      "to": "repo/opencode-gomr-gomr-test-ts",
+      "type": "mentions",
+      "weight": 0.7100000000000001
+    },
+    {
+      "from": "repo/opencode-gomr-src-repo-graph-graphify-adapter-ts",
+      "to": "repo/opencode-gomr-gomr-ts",
+      "type": "mentions",
+      "weight": 0.63
+    },
+    {
+      "from": "repo/opencode-gomr-src-repo-graph-graphify-adapter-ts",
+      "to": "repo/opencode-gomr-memory-index-ts",
+      "type": "mentions",
+      "weight": 0.47
+    },
+    {
+      "from": "repo/opencode-gomr-src-repo-graph-graphify-adapter-ts",
+      "to": "repo/opencode-gomr-runtime-ts",
+      "type": "mentions",
+      "weight": 0.7100000000000001
+    },
+    {
+      "from": "repo/opencode-gomr-src-repo-graph-graphify-adapter-ts",
+      "to": "repo/opencode-gomr-src-context-context-builder-ts",
+      "type": "mentions",
+      "weight": 0.8
+    },
+    {
+      "from": "repo/opencode-gomr-src-repo-graph-graphify-adapter-ts",
+      "to": "repo/opencode-gomr-src-repo-graph-static-repo-graph-ts",
+      "type": "mentions",
+      "weight": 0.8
+    },
+    {
+      "from": "repo/opencode-gomr-src-repo-graph-graphify-adapter-ts",
+      "to": "repo/opencode-gomr-src-routing-goal-router-ts",
+      "type": "mentions",
+      "weight": 0.8
+    },
+    {
+      "from": "repo/opencode-gomr-src-repo-graph-graphify-adapter-ts",
+      "to": "repo/opencode-package-lock-json",
+      "type": "mentions",
+      "weight": 0.22999999999999998
+    },
+    {
+      "from": "repo/opencode-gomr-src-repo-graph-graphify-adapter-ts",
+      "to": "repo/opencode-package-json",
+      "type": "mentions",
+      "weight": 0.22999999999999998
+    },
+    {
+      "from": "repo/opencode-gomr-src-repo-graph-graphify-adapter-ts",
+      "to": "repo/opencode-plugins-gomr-ts",
+      "type": "mentions",
+      "weight": 0.55
+    },
+    {
+      "from": "repo/opencode-gomr-src-repo-graph-graphify-adapter-ts",
+      "to": "repo/opencode-skills-context-path-builder-skill-md",
+      "type": "mentions",
+      "weight": 0.39
+    },
+    {
+      "from": "repo/opencode-gomr-src-repo-graph-graphify-adapter-ts",
+      "to": "repo/readme-md",
+      "type": "mentions",
+      "weight": 0.31
+    },
+    {
+      "from": "repo/opencode-gomr-src-repo-graph-graphify-adapter-ts",
+      "to": "repo/docs-superpowers-plans-2026-06-08-gomr-v0-2-md",
+      "type": "mentions",
+      "weight": 0.22999999999999998
+    },
+    {
+      "from": "repo/opencode-gomr-src-repo-graph-graphify-adapter-ts",
+      "to": "repo/docs-superpowers-specs-2026-06-08-gomr-v0-2-design-md",
+      "type": "mentions",
+      "weight": 0.31
+    },
+    {
+      "from": "repo/opencode-gomr-src-repo-graph-static-repo-graph-ts",
+      "to": "repo/opencode-gitignore",
+      "type": "mentions",
+      "weight": 0.22999999999999998
+    },
+    {
+      "from": "repo/opencode-gomr-src-repo-graph-static-repo-graph-ts",
+      "to": "repo/opencode-agents-context-router-md",
+      "type": "mentions",
+      "weight": 0.31
+    },
+    {
+      "from": "repo/opencode-gomr-src-repo-graph-static-repo-graph-ts",
+      "to": "repo/opencode-gomr-build-context-state-ts",
+      "type": "mentions",
+      "weight": 0.47
+    },
+    {
+      "from": "repo/opencode-gomr-src-repo-graph-static-repo-graph-ts",
+      "to": "repo/opencode-gomr-capture-tool-trace-ts",
+      "type": "mentions",
+      "weight": 0.47
+    },
+    {
+      "from": "repo/opencode-gomr-src-repo-graph-static-repo-graph-ts",
+      "to": "repo/opencode-gomr-context-plan-ts",
+      "type": "mentions",
+      "weight": 0.47
+    },
+    {
+      "from": "repo/opencode-gomr-src-repo-graph-static-repo-graph-ts",
+      "to": "repo/opencode-gomr-gomr-test-ts",
+      "type": "mentions",
+      "weight": 0.7100000000000001
+    },
+    {
+      "from": "repo/opencode-gomr-src-repo-graph-static-repo-graph-ts",
+      "to": "repo/opencode-gomr-gomr-ts",
+      "type": "mentions",
+      "weight": 0.63
+    },
+    {
+      "from": "repo/opencode-gomr-src-repo-graph-static-repo-graph-ts",
+      "to": "repo/opencode-gomr-memory-index-ts",
+      "type": "mentions",
+      "weight": 0.47
+    },
+    {
+      "from": "repo/opencode-gomr-src-repo-graph-static-repo-graph-ts",
+      "to": "repo/opencode-gomr-runtime-ts",
+      "type": "mentions",
+      "weight": 0.7100000000000001
+    },
+    {
+      "from": "repo/opencode-gomr-src-repo-graph-static-repo-graph-ts",
+      "to": "repo/opencode-gomr-src-context-context-builder-ts",
+      "type": "mentions",
+      "weight": 0.8
+    },
+    {
+      "from": "repo/opencode-gomr-src-repo-graph-static-repo-graph-ts",
+      "to": "repo/opencode-gomr-src-repo-graph-graphify-adapter-ts",
+      "type": "mentions",
+      "weight": 0.8
+    },
+    {
+      "from": "repo/opencode-gomr-src-repo-graph-static-repo-graph-ts",
+      "to": "repo/opencode-gomr-src-routing-goal-router-ts",
+      "type": "mentions",
+      "weight": 0.79
+    },
+    {
+      "from": "repo/opencode-gomr-src-repo-graph-static-repo-graph-ts",
+      "to": "repo/opencode-package-lock-json",
+      "type": "mentions",
+      "weight": 0.22999999999999998
+    },
+    {
+      "from": "repo/opencode-gomr-src-repo-graph-static-repo-graph-ts",
+      "to": "repo/opencode-package-json",
+      "type": "mentions",
+      "weight": 0.22999999999999998
+    },
+    {
+      "from": "repo/opencode-gomr-src-repo-graph-static-repo-graph-ts",
+      "to": "repo/opencode-plugins-gomr-ts",
+      "type": "mentions",
+      "weight": 0.55
+    },
+    {
+      "from": "repo/opencode-gomr-src-repo-graph-static-repo-graph-ts",
+      "to": "repo/opencode-skills-context-path-builder-skill-md",
+      "type": "mentions",
+      "weight": 0.39
+    },
+    {
+      "from": "repo/opencode-gomr-src-repo-graph-static-repo-graph-ts",
+      "to": "repo/readme-md",
+      "type": "mentions",
+      "weight": 0.31
+    },
+    {
+      "from": "repo/opencode-gomr-src-repo-graph-static-repo-graph-ts",
+      "to": "repo/docs-superpowers-plans-2026-06-08-gomr-v0-2-md",
+      "type": "mentions",
+      "weight": 0.22999999999999998
+    },
+    {
+      "from": "repo/opencode-gomr-src-repo-graph-static-repo-graph-ts",
+      "to": "repo/docs-superpowers-specs-2026-06-08-gomr-v0-2-design-md",
+      "type": "mentions",
+      "weight": 0.31
+    },
+    {
+      "from": "repo/opencode-gomr-src-routing-goal-router-ts",
+      "to": "repo/opencode-gitignore",
+      "type": "mentions",
+      "weight": 0.22999999999999998
+    },
+    {
+      "from": "repo/opencode-gomr-src-routing-goal-router-ts",
+      "to": "repo/opencode-agents-context-router-md",
+      "type": "mentions",
+      "weight": 0.47
+    },
+    {
+      "from": "repo/opencode-gomr-src-routing-goal-router-ts",
+      "to": "repo/opencode-gomr-build-context-state-ts",
+      "type": "mentions",
+      "weight": 0.47
+    },
+    {
+      "from": "repo/opencode-gomr-src-routing-goal-router-ts",
+      "to": "repo/opencode-gomr-capture-tool-trace-ts",
+      "type": "mentions",
+      "weight": 0.47
+    },
+    {
+      "from": "repo/opencode-gomr-src-routing-goal-router-ts",
+      "to": "repo/opencode-gomr-context-plan-ts",
+      "type": "mentions",
+      "weight": 0.55
+    },
+    {
+      "from": "repo/opencode-gomr-src-routing-goal-router-ts",
+      "to": "repo/opencode-gomr-gomr-test-ts",
+      "type": "mentions",
+      "weight": 0.7100000000000001
+    },
+    {
+      "from": "repo/opencode-gomr-src-routing-goal-router-ts",
+      "to": "repo/opencode-gomr-gomr-ts",
+      "type": "mentions",
+      "weight": 0.63
+    },
+    {
+      "from": "repo/opencode-gomr-src-routing-goal-router-ts",
+      "to": "repo/opencode-gomr-memory-index-ts",
+      "type": "mentions",
+      "weight": 0.47
+    },
+    {
+      "from": "repo/opencode-gomr-src-routing-goal-router-ts",
+      "to": "repo/opencode-gomr-runtime-ts",
+      "type": "mentions",
+      "weight": 0.7100000000000001
+    },
+    {
+      "from": "repo/opencode-gomr-src-routing-goal-router-ts",
+      "to": "repo/opencode-gomr-src-context-context-builder-ts",
+      "type": "mentions",
+      "weight": 0.8
+    },
+    {
+      "from": "repo/opencode-gomr-src-routing-goal-router-ts",
+      "to": "repo/opencode-gomr-src-repo-graph-graphify-adapter-ts",
+      "type": "mentions",
+      "weight": 0.8
+    },
+    {
+      "from": "repo/opencode-gomr-src-routing-goal-router-ts",
+      "to": "repo/opencode-gomr-src-repo-graph-static-repo-graph-ts",
+      "type": "mentions",
+      "weight": 0.79
+    },
+    {
+      "from": "repo/opencode-gomr-src-routing-goal-router-ts",
+      "to": "repo/opencode-package-lock-json",
+      "type": "mentions",
+      "weight": 0.22999999999999998
+    },
+    {
+      "from": "repo/opencode-gomr-src-routing-goal-router-ts",
+      "to": "repo/opencode-package-json",
+      "type": "mentions",
+      "weight": 0.22999999999999998
+    },
+    {
+      "from": "repo/opencode-gomr-src-routing-goal-router-ts",
+      "to": "repo/opencode-plugins-gomr-ts",
+      "type": "mentions",
+      "weight": 0.47
+    },
+    {
+      "from": "repo/opencode-gomr-src-routing-goal-router-ts",
+      "to": "repo/opencode-skills-context-path-builder-skill-md",
+      "type": "mentions",
+      "weight": 0.39
+    },
+    {
+      "from": "repo/opencode-gomr-src-routing-goal-router-ts",
+      "to": "repo/readme-md",
+      "type": "mentions",
+      "weight": 0.31
+    },
+    {
+      "from": "repo/opencode-gomr-src-routing-goal-router-ts",
+      "to": "repo/docs-superpowers-plans-2026-06-08-gomr-v0-2-md",
+      "type": "mentions",
+      "weight": 0.22999999999999998
+    },
+    {
+      "from": "repo/opencode-gomr-src-routing-goal-router-ts",
+      "to": "repo/docs-superpowers-specs-2026-06-08-gomr-v0-2-design-md",
+      "type": "mentions",
+      "weight": 0.31
+    },
+    {
+      "from": "repo/opencode-package-lock-json",
+      "to": "repo/opencode-gitignore",
+      "type": "mentions",
+      "weight": 0.55
+    },
+    {
+      "from": "repo/opencode-package-lock-json",
+      "to": "repo/opencode-agents-context-router-md",
+      "type": "mentions",
+      "weight": 0.31
+    },
+    {
+      "from": "repo/opencode-package-lock-json",
+      "to": "repo/opencode-gomr-build-context-state-ts",
+      "type": "mentions",
+      "weight": 0.22999999999999998
+    },
+    {
+      "from": "repo/opencode-package-lock-json",
+      "to": "repo/opencode-gomr-capture-tool-trace-ts",
+      "type": "mentions",
+      "weight": 0.22999999999999998
+    },
+    {
+      "from": "repo/opencode-package-lock-json",
+      "to": "repo/opencode-gomr-context-plan-ts",
+      "type": "mentions",
+      "weight": 0.22999999999999998
+    },
+    {
+      "from": "repo/opencode-package-lock-json",
+      "to": "repo/opencode-gomr-gomr-test-ts",
+      "type": "mentions",
+      "weight": 0.22999999999999998
+    },
+    {
+      "from": "repo/opencode-package-lock-json",
+      "to": "repo/opencode-gomr-gomr-ts",
+      "type": "mentions",
+      "weight": 0.22999999999999998
+    },
+    {
+      "from": "repo/opencode-package-lock-json",
+      "to": "repo/opencode-gomr-memory-index-ts",
+      "type": "mentions",
+      "weight": 0.22999999999999998
+    },
+    {
+      "from": "repo/opencode-package-lock-json",
+      "to": "repo/opencode-gomr-runtime-ts",
+      "type": "mentions",
+      "weight": 0.22999999999999998
+    },
+    {
+      "from": "repo/opencode-package-lock-json",
+      "to": "repo/opencode-gomr-src-context-context-builder-ts",
+      "type": "mentions",
+      "weight": 0.22999999999999998
+    },
+    {
+      "from": "repo/opencode-package-lock-json",
+      "to": "repo/opencode-gomr-src-repo-graph-graphify-adapter-ts",
+      "type": "mentions",
+      "weight": 0.22999999999999998
+    },
+    {
+      "from": "repo/opencode-package-lock-json",
+      "to": "repo/opencode-gomr-src-repo-graph-static-repo-graph-ts",
+      "type": "mentions",
+      "weight": 0.22999999999999998
+    },
+    {
+      "from": "repo/opencode-package-lock-json",
+      "to": "repo/opencode-gomr-src-routing-goal-router-ts",
+      "type": "mentions",
+      "weight": 0.22999999999999998
+    },
+    {
+      "from": "repo/opencode-package-lock-json",
+      "to": "repo/opencode-package-json",
+      "type": "mentions",
+      "weight": 0.63
+    },
+    {
+      "from": "repo/opencode-package-lock-json",
+      "to": "repo/opencode-plugins-gomr-ts",
+      "type": "mentions",
+      "weight": 0.22999999999999998
+    },
+    {
+      "from": "repo/opencode-package-lock-json",
+      "to": "repo/opencode-skills-context-path-builder-skill-md",
+      "type": "mentions",
+      "weight": 0.31
+    },
+    {
+      "from": "repo/opencode-package-lock-json",
+      "to": "repo/readme-md",
+      "type": "mentions",
+      "weight": 0.22999999999999998
+    },
+    {
+      "from": "repo/opencode-package-json",
+      "to": "repo/opencode-gitignore",
+      "type": "mentions",
+      "weight": 0.39
+    },
+    {
+      "from": "repo/opencode-package-json",
+      "to": "repo/opencode-agents-context-router-md",
+      "type": "mentions",
+      "weight": 0.22999999999999998
+    },
+    {
+      "from": "repo/opencode-package-json",
+      "to": "repo/opencode-gomr-build-context-state-ts",
+      "type": "mentions",
+      "weight": 0.22999999999999998
+    },
+    {
+      "from": "repo/opencode-package-json",
+      "to": "repo/opencode-gomr-capture-tool-trace-ts",
+      "type": "mentions",
+      "weight": 0.22999999999999998
+    },
+    {
+      "from": "repo/opencode-package-json",
+      "to": "repo/opencode-gomr-context-plan-ts",
+      "type": "mentions",
+      "weight": 0.22999999999999998
+    },
+    {
+      "from": "repo/opencode-package-json",
+      "to": "repo/opencode-gomr-gomr-test-ts",
+      "type": "mentions",
+      "weight": 0.22999999999999998
+    },
+    {
+      "from": "repo/opencode-package-json",
+      "to": "repo/opencode-gomr-gomr-ts",
+      "type": "mentions",
+      "weight": 0.22999999999999998
+    },
+    {
+      "from": "repo/opencode-package-json",
+      "to": "repo/opencode-gomr-memory-index-ts",
+      "type": "mentions",
+      "weight": 0.22999999999999998
+    },
+    {
+      "from": "repo/opencode-package-json",
+      "to": "repo/opencode-gomr-runtime-ts",
+      "type": "mentions",
+      "weight": 0.22999999999999998
+    },
+    {
+      "from": "repo/opencode-package-json",
+      "to": "repo/opencode-gomr-src-context-context-builder-ts",
+      "type": "mentions",
+      "weight": 0.22999999999999998
+    },
+    {
+      "from": "repo/opencode-package-json",
+      "to": "repo/opencode-gomr-src-repo-graph-graphify-adapter-ts",
+      "type": "mentions",
+      "weight": 0.22999999999999998
+    },
+    {
+      "from": "repo/opencode-package-json",
+      "to": "repo/opencode-gomr-src-repo-graph-static-repo-graph-ts",
+      "type": "mentions",
+      "weight": 0.22999999999999998
+    },
+    {
+      "from": "repo/opencode-package-json",
+      "to": "repo/opencode-gomr-src-routing-goal-router-ts",
+      "type": "mentions",
+      "weight": 0.22999999999999998
+    },
+    {
+      "from": "repo/opencode-package-json",
+      "to": "repo/opencode-package-lock-json",
+      "type": "mentions",
+      "weight": 0.63
+    },
+    {
+      "from": "repo/opencode-package-json",
+      "to": "repo/opencode-plugins-gomr-ts",
+      "type": "mentions",
+      "weight": 0.22999999999999998
+    },
+    {
+      "from": "repo/opencode-package-json",
+      "to": "repo/opencode-skills-context-path-builder-skill-md",
+      "type": "mentions",
+      "weight": 0.22999999999999998
+    },
+    {
+      "from": "repo/opencode-package-json",
+      "to": "repo/readme-md",
+      "type": "mentions",
+      "weight": 0.22999999999999998
+    },
+    {
+      "from": "repo/opencode-plugins-gomr-ts",
+      "to": "repo/opencode-gitignore",
+      "type": "mentions",
+      "weight": 0.22999999999999998
+    },
+    {
+      "from": "repo/opencode-plugins-gomr-ts",
+      "to": "repo/opencode-agents-context-router-md",
+      "type": "mentions",
+      "weight": 0.31
+    },
+    {
+      "from": "repo/opencode-plugins-gomr-ts",
+      "to": "repo/opencode-gomr-build-context-state-ts",
+      "type": "mentions",
+      "weight": 0.63
+    },
+    {
+      "from": "repo/opencode-plugins-gomr-ts",
+      "to": "repo/opencode-gomr-capture-tool-trace-ts",
+      "type": "mentions",
+      "weight": 0.63
+    },
+    {
+      "from": "repo/opencode-plugins-gomr-ts",
+      "to": "repo/opencode-gomr-context-plan-ts",
+      "type": "mentions",
+      "weight": 0.63
+    },
+    {
+      "from": "repo/opencode-plugins-gomr-ts",
+      "to": "repo/opencode-gomr-gomr-test-ts",
+      "type": "mentions",
+      "weight": 0.63
+    },
+    {
+      "from": "repo/opencode-plugins-gomr-ts",
+      "to": "repo/opencode-gomr-gomr-ts",
+      "type": "mentions",
+      "weight": 0.8
+    },
+    {
+      "from": "repo/opencode-plugins-gomr-ts",
+      "to": "repo/opencode-gomr-memory-index-ts",
+      "type": "mentions",
+      "weight": 0.63
+    },
+    {
+      "from": "repo/opencode-plugins-gomr-ts",
+      "to": "repo/opencode-gomr-runtime-ts",
+      "type": "mentions",
+      "weight": 0.55
+    },
+    {
+      "from": "repo/opencode-plugins-gomr-ts",
+      "to": "repo/opencode-gomr-src-context-context-builder-ts",
+      "type": "mentions",
+      "weight": 0.55
+    },
+    {
+      "from": "repo/opencode-plugins-gomr-ts",
+      "to": "repo/opencode-gomr-src-repo-graph-graphify-adapter-ts",
+      "type": "mentions",
+      "weight": 0.55
+    },
+    {
+      "from": "repo/opencode-plugins-gomr-ts",
+      "to": "repo/opencode-gomr-src-repo-graph-static-repo-graph-ts",
+      "type": "mentions",
+      "weight": 0.55
+    },
+    {
+      "from": "repo/opencode-plugins-gomr-ts",
+      "to": "repo/opencode-gomr-src-routing-goal-router-ts",
+      "type": "mentions",
+      "weight": 0.47
+    },
+    {
+      "from": "repo/opencode-plugins-gomr-ts",
+      "to": "repo/opencode-package-lock-json",
+      "type": "mentions",
+      "weight": 0.22999999999999998
+    },
+    {
+      "from": "repo/opencode-plugins-gomr-ts",
+      "to": "repo/opencode-package-json",
+      "type": "mentions",
+      "weight": 0.22999999999999998
+    },
+    {
+      "from": "repo/opencode-plugins-gomr-ts",
+      "to": "repo/opencode-skills-context-path-builder-skill-md",
+      "type": "mentions",
+      "weight": 0.31
+    },
+    {
+      "from": "repo/opencode-plugins-gomr-ts",
+      "to": "repo/readme-md",
+      "type": "mentions",
+      "weight": 0.39
+    },
+    {
+      "from": "repo/opencode-plugins-gomr-ts",
+      "to": "repo/docs-superpowers-plans-2026-06-08-gomr-v0-2-md",
+      "type": "mentions",
+      "weight": 0.22999999999999998
+    },
+    {
+      "from": "repo/opencode-plugins-gomr-ts",
+      "to": "repo/docs-superpowers-specs-2026-06-08-gomr-v0-2-design-md",
+      "type": "mentions",
+      "weight": 0.31
+    },
+    {
+      "from": "repo/opencode-skills-context-path-builder-skill-md",
+      "to": "repo/opencode-gitignore",
+      "type": "mentions",
+      "weight": 0.22999999999999998
+    },
+    {
+      "from": "repo/opencode-skills-context-path-builder-skill-md",
+      "to": "repo/opencode-agents-context-router-md",
+      "type": "mentions",
+      "weight": 0.7100000000000001
+    },
+    {
+      "from": "repo/opencode-skills-context-path-builder-skill-md",
+      "to": "repo/opencode-gomr-build-context-state-ts",
+      "type": "mentions",
+      "weight": 0.47
+    },
+    {
+      "from": "repo/opencode-skills-context-path-builder-skill-md",
+      "to": "repo/opencode-gomr-capture-tool-trace-ts",
+      "type": "mentions",
+      "weight": 0.31
+    },
+    {
+      "from": "repo/opencode-skills-context-path-builder-skill-md",
+      "to": "repo/opencode-gomr-context-plan-ts",
+      "type": "mentions",
+      "weight": 0.47
+    },
+    {
+      "from": "repo/opencode-skills-context-path-builder-skill-md",
+      "to": "repo/opencode-gomr-gomr-test-ts",
+      "type": "mentions",
+      "weight": 0.39
+    },
+    {
+      "from": "repo/opencode-skills-context-path-builder-skill-md",
+      "to": "repo/opencode-gomr-gomr-ts",
+      "type": "mentions",
+      "weight": 0.39
+    },
+    {
+      "from": "repo/opencode-skills-context-path-builder-skill-md",
+      "to": "repo/opencode-gomr-memory-index-ts",
+      "type": "mentions",
+      "weight": 0.31
+    },
+    {
+      "from": "repo/opencode-skills-context-path-builder-skill-md",
+      "to": "repo/opencode-gomr-runtime-ts",
+      "type": "mentions",
+      "weight": 0.39
+    },
+    {
+      "from": "repo/opencode-skills-context-path-builder-skill-md",
+      "to": "repo/opencode-gomr-src-context-context-builder-ts",
+      "type": "mentions",
+      "weight": 0.55
+    },
+    {
+      "from": "repo/opencode-skills-context-path-builder-skill-md",
+      "to": "repo/opencode-gomr-src-repo-graph-graphify-adapter-ts",
+      "type": "mentions",
+      "weight": 0.39
+    },
+    {
+      "from": "repo/opencode-skills-context-path-builder-skill-md",
+      "to": "repo/opencode-gomr-src-repo-graph-static-repo-graph-ts",
+      "type": "mentions",
+      "weight": 0.39
+    },
+    {
+      "from": "repo/opencode-skills-context-path-builder-skill-md",
+      "to": "repo/opencode-gomr-src-routing-goal-router-ts",
+      "type": "mentions",
+      "weight": 0.39
+    },
+    {
+      "from": "repo/opencode-skills-context-path-builder-skill-md",
+      "to": "repo/opencode-package-lock-json",
+      "type": "mentions",
+      "weight": 0.31
+    },
+    {
+      "from": "repo/opencode-skills-context-path-builder-skill-md",
+      "to": "repo/opencode-package-json",
+      "type": "mentions",
+      "weight": 0.22999999999999998
+    },
+    {
+      "from": "repo/opencode-skills-context-path-builder-skill-md",
+      "to": "repo/opencode-plugins-gomr-ts",
+      "type": "mentions",
+      "weight": 0.31
+    },
+    {
+      "from": "repo/opencode-skills-context-path-builder-skill-md",
+      "to": "repo/readme-md",
+      "type": "mentions",
+      "weight": 0.31
+    },
+    {
+      "from": "repo/opencode-skills-context-path-builder-skill-md",
+      "to": "repo/docs-superpowers-plans-2026-06-08-gomr-v0-2-md",
+      "type": "mentions",
+      "weight": 0.31
+    },
+    {
+      "from": "repo/opencode-skills-context-path-builder-skill-md",
+      "to": "repo/docs-superpowers-specs-2026-06-08-gomr-v0-2-design-md",
+      "type": "mentions",
+      "weight": 0.31
+    },
+    {
+      "from": "repo/readme-md",
+      "to": "repo/opencode-gitignore",
+      "type": "documents",
+      "weight": 0.22999999999999998
+    },
+    {
+      "from": "repo/readme-md",
+      "to": "repo/opencode-agents-context-router-md",
+      "type": "documents",
+      "weight": 0.31
+    },
+    {
+      "from": "repo/readme-md",
+      "to": "repo/opencode-gomr-build-context-state-ts",
+      "type": "documents",
+      "weight": 0.47
+    },
+    {
+      "from": "repo/readme-md",
+      "to": "repo/opencode-gomr-capture-tool-trace-ts",
+      "type": "documents",
+      "weight": 0.39
+    },
+    {
+      "from": "repo/readme-md",
+      "to": "repo/opencode-gomr-context-plan-ts",
+      "type": "documents",
+      "weight": 0.39
+    },
+    {
+      "from": "repo/readme-md",
+      "to": "repo/opencode-gomr-gomr-test-ts",
+      "type": "documents",
+      "weight": 0.39
+    },
+    {
+      "from": "repo/readme-md",
+      "to": "repo/opencode-gomr-gomr-ts",
+      "type": "documents",
+      "weight": 0.31
+    },
+    {
+      "from": "repo/readme-md",
+      "to": "repo/opencode-gomr-memory-index-ts",
+      "type": "documents",
+      "weight": 0.47
+    },
+    {
+      "from": "repo/readme-md",
+      "to": "repo/opencode-gomr-runtime-ts",
+      "type": "documents",
+      "weight": 0.39
+    },
+    {
+      "from": "repo/readme-md",
+      "to": "repo/opencode-gomr-src-context-context-builder-ts",
+      "type": "documents",
+      "weight": 0.31
+    },
+    {
+      "from": "repo/readme-md",
+      "to": "repo/opencode-gomr-src-repo-graph-graphify-adapter-ts",
+      "type": "documents",
+      "weight": 0.31
+    },
+    {
+      "from": "repo/readme-md",
+      "to": "repo/opencode-gomr-src-repo-graph-static-repo-graph-ts",
+      "type": "documents",
+      "weight": 0.31
+    },
+    {
+      "from": "repo/readme-md",
+      "to": "repo/opencode-gomr-src-routing-goal-router-ts",
+      "type": "documents",
+      "weight": 0.31
+    },
+    {
+      "from": "repo/readme-md",
+      "to": "repo/opencode-package-lock-json",
+      "type": "documents",
+      "weight": 0.22999999999999998
+    },
+    {
+      "from": "repo/readme-md",
+      "to": "repo/opencode-package-json",
+      "type": "documents",
+      "weight": 0.22999999999999998
+    },
+    {
+      "from": "repo/readme-md",
+      "to": "repo/opencode-plugins-gomr-ts",
+      "type": "documents",
+      "weight": 0.39
+    },
+    {
+      "from": "repo/readme-md",
+      "to": "repo/opencode-skills-context-path-builder-skill-md",
+      "type": "documents",
+      "weight": 0.31
+    },
+    {
+      "from": "repo/readme-md",
+      "to": "repo/docs-superpowers-plans-2026-06-08-gomr-v0-2-md",
+      "type": "documents",
+      "weight": 0.22999999999999998
+    },
+    {
+      "from": "repo/readme-md",
+      "to": "repo/docs-superpowers-specs-2026-06-08-gomr-v0-2-design-md",
+      "type": "documents",
+      "weight": 0.22999999999999998
+    },
+    {
+      "from": "repo/docs-superpowers-plans-2026-06-08-gomr-v0-2-md",
+      "to": "repo/opencode-agents-context-router-md",
+      "type": "documents",
+      "weight": 0.22999999999999998
+    },
+    {
+      "from": "repo/docs-superpowers-plans-2026-06-08-gomr-v0-2-md",
+      "to": "repo/opencode-gomr-build-context-state-ts",
+      "type": "documents",
+      "weight": 0.22999999999999998
+    },
+    {
+      "from": "repo/docs-superpowers-plans-2026-06-08-gomr-v0-2-md",
+      "to": "repo/opencode-gomr-capture-tool-trace-ts",
+      "type": "documents",
+      "weight": 0.22999999999999998
+    },
+    {
+      "from": "repo/docs-superpowers-plans-2026-06-08-gomr-v0-2-md",
+      "to": "repo/opencode-gomr-context-plan-ts",
+      "type": "documents",
+      "weight": 0.31
+    },
+    {
+      "from": "repo/docs-superpowers-plans-2026-06-08-gomr-v0-2-md",
+      "to": "repo/opencode-gomr-gomr-test-ts",
+      "type": "documents",
+      "weight": 0.22999999999999998
+    },
+    {
+      "from": "repo/docs-superpowers-plans-2026-06-08-gomr-v0-2-md",
+      "to": "repo/opencode-gomr-gomr-ts",
+      "type": "documents",
+      "weight": 0.22999999999999998
+    },
+    {
+      "from": "repo/docs-superpowers-plans-2026-06-08-gomr-v0-2-md",
+      "to": "repo/opencode-gomr-memory-index-ts",
+      "type": "documents",
+      "weight": 0.22999999999999998
+    },
+    {
+      "from": "repo/docs-superpowers-plans-2026-06-08-gomr-v0-2-md",
+      "to": "repo/opencode-gomr-runtime-ts",
+      "type": "documents",
+      "weight": 0.22999999999999998
+    },
+    {
+      "from": "repo/docs-superpowers-plans-2026-06-08-gomr-v0-2-md",
+      "to": "repo/opencode-gomr-src-context-context-builder-ts",
+      "type": "documents",
+      "weight": 0.22999999999999998
+    },
+    {
+      "from": "repo/docs-superpowers-plans-2026-06-08-gomr-v0-2-md",
+      "to": "repo/opencode-gomr-src-repo-graph-graphify-adapter-ts",
+      "type": "documents",
+      "weight": 0.22999999999999998
+    },
+    {
+      "from": "repo/docs-superpowers-plans-2026-06-08-gomr-v0-2-md",
+      "to": "repo/opencode-gomr-src-repo-graph-static-repo-graph-ts",
+      "type": "documents",
+      "weight": 0.22999999999999998
+    },
+    {
+      "from": "repo/docs-superpowers-plans-2026-06-08-gomr-v0-2-md",
+      "to": "repo/opencode-gomr-src-routing-goal-router-ts",
+      "type": "documents",
+      "weight": 0.22999999999999998
+    },
+    {
+      "from": "repo/docs-superpowers-plans-2026-06-08-gomr-v0-2-md",
+      "to": "repo/opencode-plugins-gomr-ts",
+      "type": "documents",
+      "weight": 0.22999999999999998
+    },
+    {
+      "from": "repo/docs-superpowers-plans-2026-06-08-gomr-v0-2-md",
+      "to": "repo/opencode-skills-context-path-builder-skill-md",
+      "type": "documents",
+      "weight": 0.31
+    },
+    {
+      "from": "repo/docs-superpowers-plans-2026-06-08-gomr-v0-2-md",
+      "to": "repo/readme-md",
+      "type": "documents",
+      "weight": 0.22999999999999998
+    },
+    {
+      "from": "repo/docs-superpowers-plans-2026-06-08-gomr-v0-2-md",
+      "to": "repo/docs-superpowers-specs-2026-06-08-gomr-v0-2-design-md",
+      "type": "documents",
+      "weight": 0.47
+    },
+    {
+      "from": "repo/docs-superpowers-specs-2026-06-08-gomr-v0-2-design-md",
+      "to": "repo/opencode-agents-context-router-md",
+      "type": "documents",
+      "weight": 0.31
+    },
+    {
+      "from": "repo/docs-superpowers-specs-2026-06-08-gomr-v0-2-design-md",
+      "to": "repo/opencode-gomr-build-context-state-ts",
+      "type": "documents",
+      "weight": 0.39
+    },
+    {
+      "from": "repo/docs-superpowers-specs-2026-06-08-gomr-v0-2-design-md",
+      "to": "repo/opencode-gomr-capture-tool-trace-ts",
+      "type": "documents",
+      "weight": 0.31
+    },
+    {
+      "from": "repo/docs-superpowers-specs-2026-06-08-gomr-v0-2-design-md",
+      "to": "repo/opencode-gomr-context-plan-ts",
+      "type": "documents",
+      "weight": 0.39
+    },
+    {
+      "from": "repo/docs-superpowers-specs-2026-06-08-gomr-v0-2-design-md",
+      "to": "repo/opencode-gomr-gomr-test-ts",
+      "type": "documents",
+      "weight": 0.31
+    },
+    {
+      "from": "repo/docs-superpowers-specs-2026-06-08-gomr-v0-2-design-md",
+      "to": "repo/opencode-gomr-gomr-ts",
+      "type": "documents",
+      "weight": 0.31
+    },
+    {
+      "from": "repo/docs-superpowers-specs-2026-06-08-gomr-v0-2-design-md",
+      "to": "repo/opencode-gomr-memory-index-ts",
+      "type": "documents",
+      "weight": 0.31
+    },
+    {
+      "from": "repo/docs-superpowers-specs-2026-06-08-gomr-v0-2-design-md",
+      "to": "repo/opencode-gomr-runtime-ts",
+      "type": "documents",
+      "weight": 0.31
+    },
+    {
+      "from": "repo/docs-superpowers-specs-2026-06-08-gomr-v0-2-design-md",
+      "to": "repo/opencode-gomr-src-context-context-builder-ts",
+      "type": "documents",
+      "weight": 0.39
+    },
+    {
+      "from": "repo/docs-superpowers-specs-2026-06-08-gomr-v0-2-design-md",
+      "to": "repo/opencode-gomr-src-repo-graph-graphify-adapter-ts",
+      "type": "documents",
+      "weight": 0.31
+    },
+    {
+      "from": "repo/docs-superpowers-specs-2026-06-08-gomr-v0-2-design-md",
+      "to": "repo/opencode-gomr-src-repo-graph-static-repo-graph-ts",
+      "type": "documents",
+      "weight": 0.31
+    },
+    {
+      "from": "repo/docs-superpowers-specs-2026-06-08-gomr-v0-2-design-md",
+      "to": "repo/opencode-gomr-src-routing-goal-router-ts",
+      "type": "documents",
+      "weight": 0.31
+    },
+    {
+      "from": "repo/docs-superpowers-specs-2026-06-08-gomr-v0-2-design-md",
+      "to": "repo/opencode-plugins-gomr-ts",
+      "type": "documents",
+      "weight": 0.31
+    },
+    {
+      "from": "repo/docs-superpowers-specs-2026-06-08-gomr-v0-2-design-md",
+      "to": "repo/opencode-skills-context-path-builder-skill-md",
+      "type": "documents",
+      "weight": 0.31
+    },
+    {
+      "from": "repo/docs-superpowers-specs-2026-06-08-gomr-v0-2-design-md",
+      "to": "repo/readme-md",
+      "type": "documents",
+      "weight": 0.22999999999999998
+    },
+    {
+      "from": "repo/docs-superpowers-specs-2026-06-08-gomr-v0-2-design-md",
+      "to": "repo/docs-superpowers-plans-2026-06-08-gomr-v0-2-md",
+      "type": "documents",
+      "weight": 0.47
+    }
+  ]
+}

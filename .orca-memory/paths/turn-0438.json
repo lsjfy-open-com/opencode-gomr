@@ -1,0 +1,422 @@
+{
+  "turn_id": "turn-0438",
+  "session_id": "ses-159172e58ffesvjxq5gbkxgdy4",
+  "goal": {
+    "id": "goal/ses-159172e58ffesvjxq5gbkxgdy4/turn-0438",
+    "title": "Initial memory seed created by gomr init.",
+    "summary": "Initial memory seed created by gomr init."
+  },
+  "created_at": "2026-06-08T12:50:23.395Z",
+  "token_budget": 8000,
+  "selected_path": [
+    {
+      "id": "goal/ses-159172e58ffesvjxq5gbkxgdy4/turn-0438",
+      "type": "goal",
+      "title": "Initial memory seed created by gomr init.",
+      "summary": "Initial memory seed created by gomr init.",
+      "source": "user_request",
+      "reason": "The user goal is the root of the selected context path.",
+      "score": 1,
+      "breakdown": {
+        "goal_match": 0.35,
+        "state_continuity": 0.2,
+        "importance": 0.15,
+        "freshness": 0.1,
+        "dependency": 0.1,
+        "backtrack_value": 0.1
+      }
+    },
+    {
+      "id": "memory/profile",
+      "type": "memory",
+      "title": "Project Profile",
+      "summary": "Identifies the project and the GOMR runtime role.",
+      "source": ".orca-memory/profile.md",
+      "reason": "Project identity anchors context reconstruction.",
+      "score": 0.92,
+      "breakdown": {
+        "goal_match": 0.12,
+        "state_continuity": 0.12,
+        "freshness": 0.1,
+        "importance": 0.15,
+        "dependency": 0.06,
+        "backtrack_value": 0.04
+      }
+    },
+    {
+      "id": "memory/architecture",
+      "type": "memory",
+      "title": "Architecture",
+      "summary": "Summarizes detected workspace areas used for context planning.",
+      "source": ".orca-memory/architecture.md",
+      "reason": "Supports architecture for this goal.",
+      "score": 0.89,
+      "breakdown": {
+        "goal_match": 0.12,
+        "state_continuity": 0.12,
+        "freshness": 0.1,
+        "importance": 0.15,
+        "dependency": 0.06,
+        "backtrack_value": 0.04
+      }
+    },
+    {
+      "id": "memory/goals",
+      "type": "memory",
+      "title": "Goals",
+      "summary": "Tracks GOMR continuity, context sufficiency, and traceability goals.",
+      "source": ".orca-memory/goals.md",
+      "reason": "Supports goals for this goal.",
+      "score": 0.86,
+      "breakdown": {
+        "goal_match": 0.12,
+        "state_continuity": 0.12,
+        "freshness": 0.1,
+        "importance": 0.15,
+        "dependency": 0.06,
+        "backtrack_value": 0.04
+      }
+    },
+    {
+      "id": "memory/modules/gomr-runtime",
+      "type": "memory",
+      "title": "GOMR Runtime",
+      "summary": "Coordinates memory initialization, traces, ledgers, context paths, graph data, and compaction context.",
+      "source": ".orca-memory/modules/gomr-runtime.md",
+      "reason": "Supports gomr runtime for this goal.",
+      "score": 0.83,
+      "breakdown": {
+        "goal_match": 0.12,
+        "state_continuity": 0.12,
+        "freshness": 0.1,
+        "importance": 0.15,
+        "dependency": 0.06,
+        "backtrack_value": 0.04
+      }
+    },
+    {
+      "id": "memory/modules/context-router",
+      "type": "memory",
+      "title": "Context Router",
+      "summary": "Selects minimal sufficient context based on the current goal, index, ledger, traces, and previous paths.",
+      "source": ".orca-memory/modules/context-router.md",
+      "reason": "Supports context router for this goal.",
+      "score": 0.8,
+      "breakdown": {
+        "goal_match": 0.12,
+        "state_continuity": 0.12,
+        "freshness": 0.1,
+        "importance": 0.15,
+        "dependency": 0.06,
+        "backtrack_value": 0.04
+      }
+    },
+    {
+      "id": "memory/modules/tool-trace",
+      "type": "memory",
+      "title": "Tool Trace",
+      "summary": "Persists selected tool evidence with stable identity, target, status, digest, and relevance reason.",
+      "source": ".orca-memory/modules/tool-trace.md",
+      "reason": "Supports tool trace for this goal.",
+      "score": 0.77,
+      "breakdown": {
+        "goal_match": 0.12,
+        "state_continuity": 0.12,
+        "freshness": 0.1,
+        "importance": 0.15,
+        "dependency": 0.06,
+        "backtrack_value": 0.04
+      }
+    },
+    {
+      "id": "memory/modules/visualization",
+      "type": "memory",
+      "title": "Visualization",
+      "summary": "Exports a static timeline and path graph that explains context path evolution.",
+      "source": ".orca-memory/modules/visualization.md",
+      "reason": "Supports visualization for this goal.",
+      "score": 0.74,
+      "breakdown": {
+        "goal_match": 0.12,
+        "state_continuity": 0.12,
+        "freshness": 0.1,
+        "importance": 0.15,
+        "dependency": 0.06,
+        "backtrack_value": 0.04
+      }
+    },
+    {
+      "id": "workspace/.opencode/gomr/memory-index.ts",
+      "type": "workspace",
+      "title": ".opencode/gomr/memory-index.ts",
+      "summary": "import { initMemory } from \"./runtime.ts\"",
+      "source": ".opencode/gomr/memory-index.ts",
+      "reason": "Workspace file matched the current goal terms or source priority.",
+      "score": 0.95,
+      "breakdown": {
+        "goal_match": 0.24,
+        "state_continuity": 0.12,
+        "freshness": 0.1,
+        "importance": 0.1,
+        "dependency": 0.1,
+        "backtrack_value": 0.04
+      }
+    },
+    {
+      "id": "workspace/.opencode/plugins/gomr.ts",
+      "type": "workspace",
+      "title": ".opencode/plugins/gomr.ts",
+      "summary": "import { buildContextState, captureToolTrace, compactingContext, contextPlan, exportVisual, initMemory, readCurrentGoal,",
+      "source": ".opencode/plugins/gomr.ts",
+      "reason": "Workspace file matched the current goal terms or source priority.",
+      "score": 0.95,
+      "breakdown": {
+        "goal_match": 0.24,
+        "state_continuity": 0.12,
+        "freshness": 0.1,
+        "importance": 0.1,
+        "dependency": 0.1,
+        "backtrack_value": 0.04
+      }
+    },
+    {
+      "id": "workspace/.opencode/gomr/build-context-state.ts",
+      "type": "workspace",
+      "title": ".opencode/gomr/build-context-state.ts",
+      "summary": "import { buildContextState } from \"./runtime.ts\"",
+      "source": ".opencode/gomr/build-context-state.ts",
+      "reason": "Workspace file matched the current goal terms or source priority.",
+      "score": 0.65,
+      "breakdown": {
+        "goal_match": 0.12,
+        "state_continuity": 0.12,
+        "freshness": 0.1,
+        "importance": 0.1,
+        "dependency": 0.1,
+        "backtrack_value": 0.04
+      }
+    },
+    {
+      "id": "workspace/.opencode/gomr/capture-tool-trace.ts",
+      "type": "workspace",
+      "title": ".opencode/gomr/capture-tool-trace.ts",
+      "summary": "import { captureToolTrace } from \"./runtime.ts\"",
+      "source": ".opencode/gomr/capture-tool-trace.ts",
+      "reason": "Workspace file matched the current goal terms or source priority.",
+      "score": 0.65,
+      "breakdown": {
+        "goal_match": 0.12,
+        "state_continuity": 0.12,
+        "freshness": 0.1,
+        "importance": 0.1,
+        "dependency": 0.1,
+        "backtrack_value": 0.04
+      }
+    },
+    {
+      "id": "workspace/.opencode/gomr/context-plan.ts",
+      "type": "workspace",
+      "title": ".opencode/gomr/context-plan.ts",
+      "summary": "import { contextPlan } from \"./runtime.ts\"",
+      "source": ".opencode/gomr/context-plan.ts",
+      "reason": "Workspace file matched the current goal terms or source priority.",
+      "score": 0.65,
+      "breakdown": {
+        "goal_match": 0.12,
+        "state_continuity": 0.12,
+        "freshness": 0.1,
+        "importance": 0.1,
+        "dependency": 0.1,
+        "backtrack_value": 0.04
+      }
+    },
+    {
+      "id": "trace/ses-159172e58ffesvjxq5gbkxgdy4/turn-0429/bash-node-experimental-strip-types-no-warnings-test-opencode-gomr-gomr-test-ts-2-1",
+      "type": "trace",
+      "title": "bash: node --experimental-strip-types --no-warnings --test .opencode/gomr/gomr.test.ts 2>&1",
+      "summary": "Run GOMR tests",
+      "source": ".orca-memory/traces/ses-159172e58ffesvjxq5gbkxgdy4.jsonl",
+      "reason": "Related to the current goal through bash on node --experimental-strip-types --no-warnings --test .opencode/gomr/gomr.test.ts 2>&1.",
+      "score": 0.35,
+      "breakdown": {
+        "goal_match": 0.12,
+        "state_continuity": 0.2,
+        "freshness": 0.1,
+        "importance": 0.1,
+        "dependency": 0.06,
+        "backtrack_value": 0.1
+      }
+    },
+    {
+      "id": "trace/ses-159172e58ffesvjxq5gbkxgdy4/turn-0430/bash-node-experimental-strip-types-no-warnings-test-opencode-gomr-gomr-test-ts-2-1",
+      "type": "trace",
+      "title": "bash: node --experimental-strip-types --no-warnings --test .opencode/gomr/gomr.test.ts 2>&1",
+      "summary": "Run GOMR tests",
+      "source": ".orca-memory/traces/ses-159172e58ffesvjxq5gbkxgdy4.jsonl",
+      "reason": "Related to the current goal through bash on node --experimental-strip-types --no-warnings --test .opencode/gomr/gomr.test.ts 2>&1.",
+      "score": 0.35,
+      "breakdown": {
+        "goal_match": 0.12,
+        "state_continuity": 0.2,
+        "freshness": 0.1,
+        "importance": 0.1,
+        "dependency": 0.06,
+        "backtrack_value": 0.1
+      }
+    },
+    {
+      "id": "trace/ses-159172e58ffesvjxq5gbkxgdy4/turn-0433/bash-powershell-exe-noprofile-executionpolicy-bypass-file-e-ai-project-opencode-gomr-install-global-ps1-2-1",
+      "type": "trace",
+      "title": "bash: powershell.exe -NoProfile -ExecutionPolicy Bypass -File \"E:/AI_Project/opencode-gomr/install-global.ps1\" 2>&1",
+      "summary": "Install GOMR globally",
+      "source": ".orca-memory/traces/ses-159172e58ffesvjxq5gbkxgdy4.jsonl",
+      "reason": "Related to the current goal through bash on powershell.exe -NoProfile -ExecutionPolicy Bypass -File \"E:/AI_Project/opencode-gomr/install-global.ps1\" 2>&1.",
+      "score": 0.35,
+      "breakdown": {
+        "goal_match": 0.12,
+        "state_continuity": 0.2,
+        "freshness": 0.1,
+        "importance": 0.1,
+        "dependency": 0.06,
+        "backtrack_value": 0.1
+      }
+    },
+    {
+      "id": "trace/ses-159172e58ffesvjxq5gbkxgdy4/turn-0434/bash-powershell-exe-noprofile-executionpolicy-bypass-file-e-ai-project-opencode-gomr-install-global-ps1-2-1",
+      "type": "trace",
+      "title": "bash: powershell.exe -NoProfile -ExecutionPolicy Bypass -File \"E:/AI_Project/opencode-gomr/install-global.ps1\" 2>&1",
+      "summary": "Install GOMR globally",
+      "source": ".orca-memory/traces/ses-159172e58ffesvjxq5gbkxgdy4.jsonl",
+      "reason": "Related to the current goal through bash on powershell.exe -NoProfile -ExecutionPolicy Bypass -File \"E:/AI_Project/opencode-gomr/install-global.ps1\" 2>&1.",
+      "score": 0.35,
+      "breakdown": {
+        "goal_match": 0.12,
+        "state_continuity": 0.2,
+        "freshness": 0.1,
+        "importance": 0.1,
+        "dependency": 0.06,
+        "backtrack_value": 0.1
+      }
+    }
+  ],
+  "excluded": [
+    {
+      "id": "workspace/.opencode/gomr/gomr.ts",
+      "type": "workspace",
+      "title": ".opencode/gomr/gomr.ts",
+      "summary": "import http from \"node:http\"",
+      "reason": "Lower score than selected files within the token budget."
+    },
+    {
+      "id": "workspace/.opencode/gomr/runtime.ts",
+      "type": "workspace",
+      "title": ".opencode/gomr/runtime.ts",
+      "summary": "import { createHash } from \"node:crypto\"",
+      "reason": "Lower score than selected files within the token budget."
+    },
+    {
+      "id": "workspace/.opencode/gomr/gomr.test.ts",
+      "type": "workspace",
+      "title": ".opencode/gomr/gomr.test.ts",
+      "summary": "import assert from \"node:assert/strict\"",
+      "reason": "Lower score than selected files within the token budget."
+    },
+    {
+      "id": "workspace/.opencode/.gitignore",
+      "type": "workspace",
+      "title": ".opencode/.gitignore",
+      "summary": "node_modules",
+      "reason": "Lower score than selected files within the token budget."
+    },
+    {
+      "id": "workspace/.opencode/agents/context-router.md",
+      "type": "workspace",
+      "title": ".opencode/agents/context-router.md",
+      "summary": "---",
+      "reason": "Lower score than selected files within the token budget."
+    },
+    {
+      "id": "memory/decisions/0001-gomr-v0.2-memory-model",
+      "type": "decision",
+      "title": "GOMR v0.2 Memory Model",
+      "summary": "GOMR stores durable evidence locally while sending only selected context to the model.",
+      "reason": "Not required for this turn's minimal context path."
+    }
+  ],
+  "diff_from_previous_turn": {
+    "added": [
+      "goal/ses-159172e58ffesvjxq5gbkxgdy4/turn-0438"
+    ],
+    "removed": [
+      "goal/ses-159172e58ffesvjxq5gbkxgdy4/turn-0437"
+    ],
+    "kept": [
+      "memory/profile",
+      "memory/architecture",
+      "memory/goals",
+      "memory/modules/gomr-runtime",
+      "memory/modules/context-router",
+      "memory/modules/tool-trace",
+      "memory/modules/visualization",
+      "workspace/.opencode/gomr/memory-index.ts",
+      "workspace/.opencode/plugins/gomr.ts",
+      "workspace/.opencode/gomr/build-context-state.ts",
+      "workspace/.opencode/gomr/capture-tool-trace.ts",
+      "workspace/.opencode/gomr/context-plan.ts",
+      "trace/ses-159172e58ffesvjxq5gbkxgdy4/turn-0429/bash-node-experimental-strip-types-no-warnings-test-opencode-gomr-gomr-test-ts-2-1",
+      "trace/ses-159172e58ffesvjxq5gbkxgdy4/turn-0430/bash-node-experimental-strip-types-no-warnings-test-opencode-gomr-gomr-test-ts-2-1",
+      "trace/ses-159172e58ffesvjxq5gbkxgdy4/turn-0433/bash-powershell-exe-noprofile-executionpolicy-bypass-file-e-ai-project-opencode-gomr-install-global-ps1-2-1",
+      "trace/ses-159172e58ffesvjxq5gbkxgdy4/turn-0434/bash-powershell-exe-noprofile-executionpolicy-bypass-file-e-ai-project-opencode-gomr-install-global-ps1-2-1"
+    ]
+  },
+  "backtrack_candidates": [
+    {
+      "id": "trace/ses-159172e58ffesvjxq5gbkxgdy4/turn-0421/edit-e-ai-project-opencode-gomr-opencode-gomr-runtime-ts",
+      "summary": "E:/AI_Project/opencode-gomr/.opencode/gomr/runtime.ts was already handled: .opencode\\gomr\\runtime.ts",
+      "reason": "Use this summary before repeating the same tool call unless the digest changed.",
+      "suggestion": "Reuse the previous summary if the target digest is unchanged."
+    },
+    {
+      "id": "trace/ses-159172e58ffesvjxq5gbkxgdy4/turn-0422/edit-e-ai-project-opencode-gomr-opencode-gomr-runtime-ts",
+      "summary": "E:/AI_Project/opencode-gomr/.opencode/gomr/runtime.ts was already handled: .opencode\\gomr\\runtime.ts",
+      "reason": "Use this summary before repeating the same tool call unless the digest changed.",
+      "suggestion": "Reuse the previous summary if the target digest is unchanged."
+    },
+    {
+      "id": "trace/ses-159172e58ffesvjxq5gbkxgdy4/turn-0425/edit-e-ai-project-opencode-gomr-opencode-gomr-runtime-ts",
+      "summary": "E:/AI_Project/opencode-gomr/.opencode/gomr/runtime.ts was already handled: .opencode\\gomr\\runtime.ts",
+      "reason": "Use this summary before repeating the same tool call unless the digest changed.",
+      "suggestion": "Reuse the previous summary if the target digest is unchanged."
+    },
+    {
+      "id": "trace/ses-159172e58ffesvjxq5gbkxgdy4/turn-0426/edit-e-ai-project-opencode-gomr-opencode-gomr-runtime-ts",
+      "summary": "E:/AI_Project/opencode-gomr/.opencode/gomr/runtime.ts was already handled: .opencode\\gomr\\runtime.ts",
+      "reason": "Use this summary before repeating the same tool call unless the digest changed.",
+      "suggestion": "Reuse the previous summary if the target digest is unchanged."
+    },
+    {
+      "id": "trace/ses-159172e58ffesvjxq5gbkxgdy4/turn-0429/bash-node-experimental-strip-types-no-warnings-test-opencode-gomr-gomr-test-ts-2-1",
+      "summary": "node --experimental-strip-types --no-warnings --test .opencode/gomr/gomr.test.ts 2>&1 was already handled: Run GOMR tests",
+      "reason": "Use this summary before repeating the same tool call unless the digest changed.",
+      "suggestion": "Reuse the previous summary if the target digest is unchanged."
+    },
+    {
+      "id": "trace/ses-159172e58ffesvjxq5gbkxgdy4/turn-0430/bash-node-experimental-strip-types-no-warnings-test-opencode-gomr-gomr-test-ts-2-1",
+      "summary": "node --experimental-strip-types --no-warnings --test .opencode/gomr/gomr.test.ts 2>&1 was already handled: Run GOMR tests",
+      "reason": "Use this summary before repeating the same tool call unless the digest changed.",
+      "suggestion": "Reuse the previous summary if the target digest is unchanged."
+    },
+    {
+      "id": "trace/ses-159172e58ffesvjxq5gbkxgdy4/turn-0433/bash-powershell-exe-noprofile-executionpolicy-bypass-file-e-ai-project-opencode-gomr-install-global-ps1-2-1",
+      "summary": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File \"E:/AI_Project/opencode-gomr/install-global.ps1\" 2>&1 was already handled: Install GOMR globally",
+      "reason": "Use this summary before repeating the same tool call unless the digest changed.",
+      "suggestion": "Reuse the previous summary if the target digest is unchanged."
+    },
+    {
+      "id": "trace/ses-159172e58ffesvjxq5gbkxgdy4/turn-0434/bash-powershell-exe-noprofile-executionpolicy-bypass-file-e-ai-project-opencode-gomr-install-global-ps1-2-1",
+      "summary": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File \"E:/AI_Project/opencode-gomr/install-global.ps1\" 2>&1 was already handled: Install GOMR globally",
+      "reason": "Use this summary before repeating the same tool call unless the digest changed.",
+      "suggestion": "Reuse the previous summary if the target digest is unchanged."
+    }
+  ]
+}
